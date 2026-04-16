@@ -1,10 +1,29 @@
-env/
+# Conda environments
+envs/
+conda-envs/
+.conda/
+miniforge3/
+anaconda3/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Virtual environments
 venv/
-.env/
 .venv/
 
-Python
-__pycache__/
+# Local/config files with secrets
+.env
+.env.local
+*.local
+secrets.yml
 
+# VSCode
 .vscode/
+
+# Tests
+tests/
 
