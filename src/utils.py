@@ -1,47 +1,64 @@
-import cantera as ct
 import numpy as np
-import os
+from numpy.typing import NDArray
+import cantera as ct
+from pathlib import Path
 
-def load_data() -> ct.Solution:
-    # on charge le fichier output_convert.yaml qui contient les données converties des fichiers V1_Meca_GE_LIE_LSE.txt et V1_Thermo_GE_LIE_LSE.txt
-    dossier = os.path.dirname(os.path.abspath(__file__)) # Récupère le chemin du dossier actuel
-    dossier = dossier.replace('src', 'tests') # Remplace l'emplacement actuel par 'data' pour accéder au dossier contenant les fichiers de données
-    ct.add_data_directory(dossier) # Ajoute le dossier à la liste des répertoires de données de Cantera
-    gas = ct.Solution('output_convert.yaml') # Charge le fichier output_convert.yaml dans Cantera 
-    return gas
+global pression, temperature, species #, add_inertes
+species = ['H2','H2O', 'B2CO', 'CO2', 'C2H2T', 'C2H4Z', 'CH4', 'C2H6', 'C3H8','C4H10','C5H12-1', 'O2', 'N2']
 
 
-
-def equilibrium(phi, fuel, t, p) -> ct.Solution:
-    gas = load_data() # On charge les données 
-    system_ratio(gas, phi, fuel) # On calcule le ratio de l'air/carburant pour le mélange de gaz
-    gas.TP = t, p # On définit la température et la pression du gaz dans le modèle
-    gas.equilibrate('HP') # On calcule l'équilibre chimique à enthalpie et pression constantes
-    return gas
-
-def t_adiabatique(phi, fuel, t, p) -> float:
-    gas = equilibrium(phi, fuel, t, p) # On calcule l'équilibre chimique du mélange de gaz à la température et à la pression données
-    return gas.T # On retourne la température adiabatique du gaz à l'équilibre
-
-
+# Cette fonction récupère la composition d'un mélange
+def get_composition(gas: ct.Solution) -> NDArray[np.float64]:
+    composition = [None] # initialisation de la liste de composition (avec composition[0] = None pour éviter les erreurs d'indexation)
     
+    for sp in species: 
+        if sp in gas.species_names:
+            composition.append(gas.X[gas.species_index(sp)]) # on ajoute la fraction molaire de chaque espèce à la composition
+            
+    return np.array(composition, dtype=float) # on convertit la composition en tableau numpy pour faciliter les calculs et on la retourne
 
 
-# différents moyens de calculer le ratio de l'air/carburant
-def system_ratio(gas: ct.Solution, phi_, fuel_): # marche pour tout type de carburant
-    gas.set_equivalence_ratio(phi=phi_, fuel=fuel_, oxidizer={'O2': 0.21, 'N2': 0.79}) # Le ratio est par défaut calculé pour un mélange de 21% d'oxygène et 79% d'azote
-    
-def system_ratio_old(gas: ct.Solution, phi, fuel): # que pour les hydrocarbures
-    # Trouve le nombre d'atomes de chaque élément dans le carburant
-    nC = gas.n_atoms(fuel, 'C')
-    nH = gas.n_atoms(fuel, 'H')
+# Cette fonction appelle Cantera pour calculer la température d'équilibre du mélange de gaz à partir du ratio de l'air/carburant (equivalence_ratio) 
+# et des propriétés du gaz (température, pression, composition) stockées dans la variable gas. 
+# Elle retourne la température d'équilibre calculée par Cantera.
+def equilibrium(gas: ct.Solution, equivalence_ratio: float) -> float: 
+    # on crée une copie du gaz pour ne pas modifier les données originales et on replace les propriétés du gaz (température, pression, composition) dans la copie  
+    gas_copy = ct.Solution(gas.source) 
+    gas_copy.TP = gas.TP
+    gas_copy.X = gas.X
+    composition = get_composition(gas_copy) # on récupère la composition du mélange à partir de la copie du gaz 
 
-    N2_ratio = 3.76 # ratio de l'air
-    stoich_O2 = nC + 0.25*nH # calcul stoechiométrique de l'oxygène nécessaire pour brûler complètement le carburant
+    # on parcoure les espèces pour trouver les combustibles dominants
+    fuel = dict() # initialisation d'un dictionnaire pour stocker le nom du combustible dominant et sa fraction molaire
     
-    X = np.zeros(gas.n_species) # On crée un tableau de zéros pour stocker les fractions molaires des espèces
-    X[gas.species_index(fuel)] = phi # On définit la fraction molaire du carburant à 1 (100%)
-    X[gas.species_index('O2')] = stoich_O2 # On définit la fraction molaire de l'oxygène selon le calcul stoechiométrique
-    X[gas.species_index('N2')] = stoich_O2 * N2_ratio # On définit la fraction molaire de l'azote selon le ratio de l'air (3.76 fois celui de l'oxygène)
+    for i, sp in enumerate(species):
+        if composition[i+1] >= 1.0e-6: # on considère qu'une espèce est présente en quantité significative si sa fraction molaire est supérieure ou égale à 1.0e-6
+            if sp in ['H2', 'CH4', 'C2H6', 'B2CO', 'C3H8', 'C4H10', 'C5H12-1', 'C2H2T', 'C2H4Z']: # on ignore les espèces inertes (O2, N2, CO2, H2O) 
+                fuel[sp] = composition[i+1]
+
+    if len(fuel) == 0:
+        raise ValueError("Aucun combustible dominant détecté.")
     
-    gas.X = X # On met à jour les fractions molaires du gaz dans le modèle
+    # on normalise les fractions molaires des combustibles dominants pour que leur somme soit égale à 1 (pour que Cantera puisse les utiliser correctement)
+    s = sum(fuel.values())
+    fuel = {key: value / s for key, value in fuel.items()}
+    
+    gas_copy.set_equivalence_ratio(phi=equivalence_ratio, fuel=fuel, oxidizer={'O2': 0.21, 'N2': 0.79}) # on définit le ratio de l'air/carburant pour le mélange de gaz
+    
+    gas_copy.equilibrate('HP') # on calcule l'état d'équilibre à température et pression constantes
+    
+    # on retourne la température d'équilibre
+    return gas_copy.T
+
+# Cette fonction crée un fichier (nom du fichier d'entrée ou results.txt par défaut) et y écrit les résultats des calculs de limites d'explosivité (LIE/LSE).
+def write_results(limites_list: list, fichier: str = "results.txt") -> None:
+    src = Path(__file__).resolve().parent
+    chemin = src.parent / 'data' / fichier # on construit le chemin vers le fichier de résultats à partir du dossier actuel et du dossier "data"
+    
+    with open(chemin, "w") as f: # on ouvre le fichier en mode écriture (il sera créé s'il n'existe pas ou écrasé s'il existe déjà)
+        for limites in limites_list:
+            f.write(f"\nLimites d'explosivité à P = {limites['LIE'][1]} bar et T = {limites['LIE'][2]} °C :\n"
+                    f"LIE = {limites['LIE'][4]} pour un ratio d'équivalence de Phi_Low  = {limites['LIE'][0]} et une température critique T_Low  = {limites['LIE'][3]} °C\n"
+                    f"LSE = {limites['LSE'][4]} pour un ratio d'équivalence de Phi_High = {limites['LSE'][0]} et une température critique T_High = {limites['LSE'][3]} °C\n")
+
+
