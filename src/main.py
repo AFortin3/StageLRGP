@@ -33,19 +33,19 @@ def main():
         f"\nTempérature initiale : {utils.temperature - 273.15} °C")
     
     # On récupère la composition du mélange à partir des données chargées
-    composition = utils.get_composition(gas)
+    utils.composition = utils.get_composition(gas)
     print("\nComposition initiale :")
-    for i, fraction in enumerate(composition[1:]): # on ignore composition[0] qui est None
+    for i, fraction in enumerate(utils.composition[1:14]): # on ignore composition[0] qui est None
         print(f"{utils.species[i]}: {fraction:.2f}")
     
     # On ajuste les températures critiques à partir des données chargées
-    temperatures = critere_T(composition)
+    temperatures = critere_T()
     print("\nPremières températures critiques :"
         "\nT_Low  = ", float(temperatures[0]),
         "\nT_High = ", float(temperatures[1]))
     
     # On détermine les premières LIE/LSE à partir des résultats des calculs précédents
-    limites = lie_lse(gas, composition, temperatures[0], temperatures[1])
+    limites = lie_lse(gas, temperatures[0], temperatures[1])
     print("\nPremières limites d'explosivité :"
         "\nLIE = ", (limites["LIE"]),
         "\nLSE = ", (limites["LSE"]))
@@ -55,14 +55,14 @@ def main():
     # On calcule maintenant selon plusieurs températures et pressions les LIE/LSE : 
     limites_list = []
     
-    for i in range(1, 21, 2):
+    for i in range(1, 22, 2):
         utils.pression = i # on incrémente la pression de 1 à 21 bar par pas de 2 bar
-        for j in range(25, 160, 20):
+        for j in range(25, 180, 20):
             utils.temperature = j + 273.15 # on incrémente la température de 25 (et pas 5) à 160 °C par pas de 20 °C, convertie en K
             gas.TP = utils.temperature, utils.pression * 100000 # on met à jour la température et la pression du gaz dans Cantera
             
-            temperatures = critere_T(composition) # on calcule les températures critiques pour la composition actuelle du mélange
-            limites_list.append(lie_lse(gas, composition, temperatures[0], temperatures[1])) # on calcule les limites d'explosivité pour la situation actuelle
+            temperatures = critere_T() # on calcule les températures critiques pour la composition actuelle du mélange
+            limites_list.append(lie_lse(gas, temperatures[0], temperatures[1])) # on calcule les limites d'explosivité pour la situation actuelle
     
     for limites in limites_list:
         print("\nLimites d'explosivité à P =", limites["LIE"][1], "bar et T =", limites["LIE"][2], "°C :"

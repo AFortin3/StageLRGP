@@ -2,8 +2,6 @@ import cantera as ct
 from pathlib import Path
 from format_yaml import format_desc, format_species
 
-import utils
-
 # on analyse le fichier d'entrée pour récupérer les données dans un objet Cantera (subroutine Mixture.f90)
 def mixture(fichier: str) -> ct.Solution:    
     extension = fichier.split(".")[-1] # on récupère l'extension du fichier 
@@ -51,6 +49,17 @@ def create_from_txt(fichier: str) -> ct.Solution:
         elif cmd == 'FUEL':
             species[parts[1]] = float(parts[2])
             
+    # vérification des quantités pour les combustibles 
+    total = sum(species.values())
+
+    if total == 0:
+        raise ValueError("Aucun carburant spécifié (somme = 0).")
+    elif total != 100.0:
+        print(f"Attention : la somme des carburants n'est pas égale à 100 (somme = {total}). Les valeurs seront normalisées.")
+        # normalisation : on redimensionne chaque valeur pour que la somme fasse 100
+        for name in species:
+            species[name] = species[name] * 100.0 / total
+            
     chemin_yaml = write_yaml_from_data(chemin_txt, pres, temp, species, inertes) # après avoir extrait les données du fichier txt, on crée un fichier yaml à partir de ces données 
     
     #utils.add_inertes = inertes # on stocke les gaz inertes dans une variable globale (utils.add_inertes)
@@ -63,7 +72,7 @@ def create_from_txt(fichier: str) -> ct.Solution:
 def write_yaml_from_data(chemin_txt: Path, pres: float, temp: float, species: dict, inertes: dict) -> Path:
     chemin_yaml = chemin_txt.with_suffix(".yaml") # on change l'extension du fichier txt en yaml pour créer le chemin du fichier yaml à écrire
 
-    contenu = format_desc(str(chemin_txt), temp, pres, species, inertes) # on utilise la fonction format_desc pour créer la partie description du fichier yaml
+    contenu = format_desc(str(chemin_txt), temp, pres, species) # on utilise la fonction format_desc pour créer la partie description du fichier yaml
     contenu += format_species() # on ajoute ensuite la partie species du fichier yaml (format_species)
 
     with open(chemin_yaml, "w", encoding="utf-8") as f: 

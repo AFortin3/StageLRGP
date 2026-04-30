@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 import utils
 
 # On récupère les seuils de température critiques (T_low et T_high) pour le mélange (subroutine Critere_T.f90)
-def critere_T(composition: NDArray[np.float64]) -> tuple[float, float]:
+def critere_T() -> tuple[float, float]:
     critere_P = np.zeros((14, 3), dtype=float) # initialisation du tableau des critères de température (avec ligne et colonne 0 nulles pour éviter les erreurs d'indexation)
 
     # Critere Low_T
@@ -117,7 +117,7 @@ def critere_T(composition: NDArray[np.float64]) -> tuple[float, float]:
 	# 1 <= pression <= 10.
 	# cas H2 seul : y = -44.833x3 + 421x2 - 1323.2x + 2071
 
-    if ( np.sum(composition[2:13]) <= 1.0e-5 ): 
+    if ( np.sum(utils.composition[2:13]) <= 1.0e-5 ): 
         # cas de H2 seul
         if ( utils.temperature <= 25. + 273.15 ):
             critere_P[1,2] = -44.833 * utils.pression**3 + 421 * utils.pression**2 - 1323.2 * utils.pression**1 + 2071 # 30°
@@ -142,10 +142,10 @@ def critere_T(composition: NDArray[np.float64]) -> tuple[float, float]:
             
     
     # Somme totale sans les inertes
-    composition_1 = composition.copy() # on duplique la composition pour ne pas modifier les données originales
+    composition_1 = utils.composition.copy() # on duplique la composition pour ne pas modifier les données originales
     composition_1[0] = 0. # pour éviter les erreurs de calcul sur un objet None
     
-    Sum1 = np.sum(composition[1:]) - composition[2] - composition[4] - composition[12] - composition[13]
+    Sum1 = np.sum(composition_1) - composition_1[2] - composition_1[4] - composition_1[12] - composition_1[13]
     composition_1 = 100. * composition_1 / Sum1
     
     composition_1[2] = 0.
@@ -153,12 +153,7 @@ def critere_T(composition: NDArray[np.float64]) -> tuple[float, float]:
     composition_1[12] = 0.
     composition_1[13] = 0.
     
-    T_Low  = np.sum( composition_1[1:] * critere_P[1:,1] ) / 100.
-    T_High = np.sum( composition_1[1:] * critere_P[1:,2] ) / 100. 
+    T_Low  = np.sum( composition_1[1:14] * critere_P[1:,1] ) / 100.
+    T_High = np.sum( composition_1[1:14] * critere_P[1:,2] ) / 100. 
     
     return (T_Low, T_High)
-
-
-
-
-
