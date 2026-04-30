@@ -50,10 +50,19 @@ def create_from_txt(fichier: str) -> ct.Solution:
             inertes[parts[1]] = float(parts[2]) 
         elif cmd == 'FUEL':
             species[parts[1]] = float(parts[2])
-            
+    
     # vérification des quantités pour les combustibles 
-    if (sum (species.values()) != 100.0):
-        raise ValueError("La somme des espèces de carburant doit être égale à 100%.")
+    total = sum(species.values())
+
+    if total == 0:
+        raise ValueError("Aucun carburant spécifié (somme = 0).")
+    elif total != 100.0:
+        print(f"Attention : la somme des carburants n'est pas égale à 100 (somme = {total}). Les valeurs seront normalisées.")
+        # normalisation : on redimensionne chaque valeur pour que la somme fasse 100
+        for name in species:
+            species[name] = species[name] * 100.0 / total
+    
+    utils.add_inertes = inertes # on stocke les gaz inertes dans une variable globale (utils.add_inertes) et on les ajoutera lors du set_equivalence_ratio dans LIE_LSE_V2.py
             
     chemin_yaml = write_yaml_from_data(chemin_txt, pres, temp, species, inertes) # après avoir extrait les données du fichier txt, on crée un fichier yaml à partir de ces données 
     

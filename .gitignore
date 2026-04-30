@@ -24,6 +24,6 @@ secrets.yml
 # VSCode
 .vscode/
 
-# Tests
+# Tests et données
 tests/
-
+data/
