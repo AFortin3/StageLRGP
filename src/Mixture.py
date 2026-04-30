@@ -51,6 +51,10 @@ def create_from_txt(fichier: str) -> ct.Solution:
         elif cmd == 'FUEL':
             species[parts[1]] = float(parts[2])
             
+    # vérification des quantités pour les combustibles 
+    if (sum (species.values()) != 100.0):
+        raise ValueError("La somme des espèces de carburant doit être égale à 100%.")
+            
     chemin_yaml = write_yaml_from_data(chemin_txt, pres, temp, species, inertes) # après avoir extrait les données du fichier txt, on crée un fichier yaml à partir de ces données 
     
     #utils.add_inertes = inertes # on stocke les gaz inertes dans une variable globale (utils.add_inertes)
