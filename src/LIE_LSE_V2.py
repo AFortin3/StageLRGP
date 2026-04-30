@@ -146,8 +146,11 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
 
 
 def calcul_limite(gas, phi, fuel, tableau, T_ref, ratio_N2, ratio_O2, ratio_CO2, ratio_H2O, repere):
-    # on ajuste la composition du mélange de gaz à partir du ratio de l'air/carburant et on la récupère
-    gas.set_equivalence_ratio(phi=phi, fuel=fuel, oxidizer={'O2': 1, 'N2': 3.76}) 
+    # on ajuste la composition du mélange de gaz à partir du ratio de l'air/carburant en vérifiant la présence de gaz inertes
+    if sum(utils.add_inertes.values()) > 0.0:
+        gas.set_equivalence_ratio(phi=phi, fuel=fuel, oxidizer={'O2': 1, 'N2': 3.76}, diluent=utils.add_inertes, fraction={"diluent": sum(utils.add_inertes.values())})
+    else:
+        gas.set_equivalence_ratio(phi=phi, fuel=fuel, oxidizer={'O2': 1, 'N2': 3.76})
     composition_avec_air = utils.get_composition(gas) 
     composition_avec_air[0] = tableau[0] # on place la température dans l'index 0 de la composition
     tableau = composition_avec_air.copy() # on copie la composition ajustée dans le tableau pour les calculs suivants

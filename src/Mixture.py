@@ -2,6 +2,8 @@ import cantera as ct
 from pathlib import Path
 from format_yaml import format_desc, format_species
 
+import utils
+
 # on analyse le fichier d'entrée pour récupérer les données dans un objet Cantera (subroutine Mixture.f90)
 def mixture(fichier: str) -> ct.Solution:    
     extension = fichier.split(".")[-1] # on récupère l'extension du fichier 
@@ -59,6 +61,8 @@ def create_from_txt(fichier: str) -> ct.Solution:
         # normalisation : on redimensionne chaque valeur pour que la somme fasse 100
         for name in species:
             species[name] = species[name] * 100.0 / total
+            
+    utils.add_inertes = inertes # on stocke les gaz inertes dans une variable globale (utils.add_inertes) et on les ajoutera lors du set_equivalence_ratio dans LIE_LSE_V2.py
             
     chemin_yaml = write_yaml_from_data(chemin_txt, pres, temp, species, inertes) # après avoir extrait les données du fichier txt, on crée un fichier yaml à partir de ces données 
     

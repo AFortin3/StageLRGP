@@ -3,7 +3,7 @@ from numpy.typing import NDArray
 import cantera as ct
 from pathlib import Path
 
-global pression, temperature, composition, species #, add_inertes
+global pression, temperature, composition, species, add_inertes
 species = ['H2','H2O', 'B2CO', 'CO2', 'C2H2T', 'C2H4Z', 'CH4', 'C2H6', 'C3H8','C4H10','C5H12-1', 'O2', 'N2']
 
 
@@ -19,13 +19,31 @@ def get_composition(gas: ct.Solution) -> NDArray[np.float64]:
 # et des propriétés du gaz (température, pression, composition) stockées dans les variables globales. 
 # Elle retourne la température d'équilibre calculée par Cantera.
 def equilibrium(gas: ct.Solution, equivalence_ratio: float, fuel: dict) -> float: 
-    gas.TPX = temperature, pression * 101325, composition[1:] # on définit la température, la pression et la composition du mélange de gaz à partir des variables globales
-
-    gas.set_equivalence_ratio(phi=equivalence_ratio, fuel=fuel, oxidizer={'O2': 1, 'N2': 3.76}) # on définit le ratio de l'air/carburant pour le mélange de gaz
-       
-    gas.equilibrate('HP') # on calcule l'état d'équilibre à température et pression constantes
     
-    return gas.T # on retourne la température d'équilibre
+    # on définit la température, la pression et la composition du mélange de gaz à partir des variables globales
+    gas.TPX = temperature, pression * 101325, composition[1:] 
+
+    # on définit le ratio de l'air/carburant pour le mélange de gaz en ajoutant les gaz inertes (s'il y en a) à l'oxydant (air) dans la fonction set_equivalence_ratio de Cantera
+    if sum(add_inertes.values()) > 0.0:
+        gas.set_equivalence_ratio(
+            phi=equivalence_ratio,
+            fuel=fuel,
+            oxidizer={'O2': 1, 'N2': 3.76},
+            diluent=add_inertes,
+            fraction={"diluent": sum(add_inertes.values())}
+        )
+    else:
+        gas.set_equivalence_ratio(
+            phi=equivalence_ratio,
+            fuel=fuel,
+            oxidizer={'O2': 1, 'N2': 3.76}
+        )       
+        
+    # on calcule l'état d'équilibre à température et pression constantes
+    gas.equilibrate('HP') 
+    
+    # on retourne la température d'équilibre
+    return gas.T 
 
 
 # Cette fonction crée un fichier (nom du fichier d'entrée ou results.txt par défaut) et y écrit les résultats des calculs de limites d'explosivité (LIE/LSE).
