@@ -8,7 +8,7 @@ TEMP 473.15   ! Temperature (K)
 ! 
 ! species property
 ! 
-ADD CO2 0.0   ! Added Species Fraction of Total Reactant Species (mole fraction)
+ADD CO2 0.1   ! Added Species Fraction of Total Reactant Species (mole fraction)
 ADD H2O 0.0   ! Added Species Fraction of Total Reactant Species (mole fraction)
 ADD N2 0.0   ! Added Species Fraction of Total Reactant Species (mole fraction)
 !

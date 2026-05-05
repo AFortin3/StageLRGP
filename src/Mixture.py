@@ -10,13 +10,65 @@ def mixture(fichier: str) -> ct.Solution:
     
     if extension in ['yaml', 'yml', 'cti']: # si le fichier est dans un format reconnaissable par Cantera, on utilise directement Cantera pour le charger
         gas = ct.Solution(fichier)
-        # TODO demander à l'utilisateur s'il souhaite ajouter des gaz inertes et les stocker dans utils.add_inertes 
+        ajouter_inertes() # TODO demander à l'utilisateur s'il souhaite ajouter des gaz inertes et les stocker dans utils.add_inertes 
+                    
     elif extension == 'txt':
         gas = create_from_txt(fichier) # si le fichier est au format txt, on utilise une fonction personnalisée pour créer un objet gas à partir des données du fichier
+        
     else: 
         raise ValueError("Unsupported file format. Please provide a yaml/yml, cti, or txt file.")
     
     return gas
+
+
+# cette fonction ajoute les gaz inertes spécifiés par l'utilisateur dans utils.add_inertes
+def ajouter_inertes():
+    inertes = ['CO2', 'H2O', 'N2'] # liste des gaz inertes reconnus
+    
+    rep = input("Voulez-vous ajouter des gaz inertes ? (y/n) ") # TODO remplacer par une interface plus propre que la console
+    
+    if rep == "y":
+        while True:
+            if len(inertes) == 0:
+                print("Tous les gaz inertes disponibles ont été ajoutés.")
+                break
+            
+            nom = input("Nom du gaz inerte ('stop' pour terminer) : ")
+            
+            if nom == "stop":
+                if len(utils.add_inertes) == 0:
+                    print("Aucun gaz inerte ajouté.")
+                else:
+                    print(f"Gaz inertes ajoutés : {utils.add_inertes}")
+                break
+            elif nom not in inertes:
+                print(f"{nom} n'est pas une espèce reconnue. Veuillez choisir un gaz valide non encore ajouté ({inertes}).") 
+                continue
+            elif nom in utils.add_inertes:
+                print(f"{nom} est déjà ajouté avec une quantité de {utils.add_inertes[nom]}. Veuillez choisir un autre gaz à ajouter ({inertes}).")
+                continue
+            
+            
+            while True:
+                quantite = 0
+                try:
+                    quantite = float(input(f"Quantité de {nom} (en fraction molaire) : "))
+                except ValueError:
+                    print("Quantité invalide. Veuillez entrer un nombre.")
+                    continue
+                    
+                if quantite + sum(utils.add_inertes.values()) > 1.0: # seuil 0.9 ? au dessus le mélange devient trop dilué pour être explosif
+                    print(f"Quantité totale des gaz inertes dépasse 1.0 (actuellement {sum(utils.add_inertes.values())}). Veuillez entrer une quantité plus petite.")
+                    continue
+                elif quantite < 0:
+                    print("Quantité invalide. Veuillez entrer un nombre positif.")
+                    continue
+                
+                utils.add_inertes[nom] = quantite
+                inertes.remove(nom) # on retire le gaz ajouté de la liste des gaz disponibles pour éviter les doublons
+                break
+    else: 
+        print("Aucun gaz inerte ajouté.")
     
     
 # cette fonction lit un fichier txt contenant les données de pression, température, espèces de carburant et gaz inertes, 
@@ -62,11 +114,14 @@ def create_from_txt(fichier: str) -> ct.Solution:
         for name in species:
             species[name] = species[name] * 100.0 / total
             
+    # vérification des quantités pour les gaz inertes
+    total_inertes = sum(inertes.values())
+    if total_inertes > 1.0: # seuil 0.9 ? au dessus le mélange devient trop dilué pour être explosif
+        raise ValueError(f"La somme des gaz inertes dépasse 1.0 (somme = {total_inertes}). Veuillez corriger les quantités dans le fichier txt.")
+    
     utils.add_inertes = inertes # on stocke les gaz inertes dans une variable globale (utils.add_inertes) et on les ajoutera lors du set_equivalence_ratio dans LIE_LSE_V2.py
             
     chemin_yaml = write_yaml_from_data(chemin_txt, pres, temp, species, inertes) # après avoir extrait les données du fichier txt, on crée un fichier yaml à partir de ces données 
-    
-    #utils.add_inertes = inertes # on stocke les gaz inertes dans une variable globale (utils.add_inertes)
     
     gas = ct.Solution(chemin_yaml) # on charge ensuite le fichier yaml créé dans Cantera pour obtenir un objet gas utilisable dans les calculs
     return gas

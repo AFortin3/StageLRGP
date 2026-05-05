@@ -5,6 +5,7 @@ from pathlib import Path
 
 global pression, temperature, composition, species, add_inertes
 species = ['H2','H2O', 'B2CO', 'CO2', 'C2H2T', 'C2H4Z', 'CH4', 'C2H6', 'C3H8','C4H10','C5H12-1', 'O2', 'N2']
+add_inertes = dict() # dictionnaire pour stocker les gaz inertes ajoutés par l'utilisateur et leurs quantités respectives (en fraction molaire)
 
 
 # Cette fonction récupère la composition d'un mélange
