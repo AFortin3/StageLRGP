@@ -42,6 +42,7 @@ def equilibrium(gas: ct.Solution, equivalence_ratio: float, fuel: dict) -> float
     gas()
         
     gas.equilibrate('HP') # on calcule l'état d'équilibre à température et pression constantes
+    print("température d'équilibre : ", gas.T)
     
     print("******************FIN EQUILIBRIUM******************")
     

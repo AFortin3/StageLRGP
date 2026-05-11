@@ -5,6 +5,7 @@ import utils
 from Mixture import mixture
 from Critere_T import critere_T
 from LIE_LSE_V2 import lie_lse
+from LIE_LSE_brentq import lie_lse_brentq
 
 
 def main():
@@ -45,7 +46,7 @@ def main():
         "\nT_High = ", float(temperatures[1]))
     
     # On détermine les premières LIE/LSE à partir des résultats des calculs précédents
-    limites = lie_lse(gas, temperatures[0], temperatures[1])
+    limites = lie_lse_brentq(gas, temperatures[0], temperatures[1])
     print("\nPremières limites d'explosivité :"
         "\nLIE = ", (limites["LIE"]),
         "\nLSE = ", (limites["LSE"]))
