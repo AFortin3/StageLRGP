@@ -4,6 +4,9 @@ import cantera as ct
 from pathlib import Path
 
 global pression, temperature, composition, species, add_inertes
+pression = 20.265 # pression initiale en bar (20 atm)
+temperature = 473.15 # température initiale en K (200 °C) 
+composition = dict() # dictionnaire pour stocker la composition du mélange de gaz (en fraction molaire)
 species = ['H2','H2O', 'B2CO', 'CO2', 'C2H2T', 'C2H4Z', 'CH4', 'C2H6', 'C3H8','C4H10','C5H12-1', 'O2', 'N2']
 add_inertes = dict() # dictionnaire pour stocker les gaz inertes ajoutés par l'utilisateur et leurs quantités respectives (en fraction molaire)
 

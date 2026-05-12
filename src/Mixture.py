@@ -127,7 +127,7 @@ def create_from_txt(fichier: str) -> ct.Solution:
     return gas
     
 
-# cette fonction crée un fichier yaml à partir des données extraites du fichier txt, en respectant la structure attendue par Cantera pour les fichiers de données de gaz.
+# cette fonction crée un fichier yaml à partir des données extraites du fichier txt, en respectant la structure attendue par Cantera.
 def write_yaml_from_data(chemin_txt: Path, pres: float, temp: float, species: dict, inertes: dict) -> Path:
     chemin_yaml = chemin_txt.with_suffix(".yaml") # on change l'extension du fichier txt en yaml pour créer le chemin du fichier yaml à écrire
 

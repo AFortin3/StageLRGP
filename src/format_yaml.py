@@ -14,7 +14,7 @@ def format_desc(chemin_txt: str, temp: float, pres: float, species: dict) -> str
         "- name: gas\n"
         "  thermo: ideal-gas\n"
         "  elements: [H, O, C, N, He, Ar]\n"
-        """  species: [H2, H2O, B2CO, CO2, C2H2T, C2H4Z, CH4, C2H6, C3H8, C4H10, 
+      """  species: [H2, H2O, B2CO, CO2, C2H2T, C2H4Z, CH4, C2H6, C3H8, C4H10, 
       C5H12-1, O2, N2, B1O, B3C, B4CH, B5CH2, B6CH2, H2O2, HCHO, CH3OH,
       CH3OOH, CH2COZ, CH3CHO, C2H5OH, C2H5OOH, CH3COOOH, C3H6Y, nC4H8Y, 
       C2H5CHO, C3H7OH, C2H6CO, C3H8CO, C4H6Z2-13, C2H3CHOZ, C2H4OE#3, 
@@ -40,9 +40,9 @@ def format_desc(chemin_txt: str, temp: float, pres: float, species: dict) -> str
       R59C4H9O4UP, R60C4H9O4UP, R61C4H9O4UP, R62C3H7O4UP, R63C4H9O4UP, 
       R64C4H9O4UP, R65C4H9O4UP, R66C5H11O4UP, R67C5H11O4UP, R68C3H7O2P,
       R69C5H11O4UP, R70C5H11O4UP, R71C5H11O4UP, R72C5H11O4UP, 
-      R73C5H11O4UP, R74C5H11O4UP, R75C5H11O4UP, R76C5H11O4UP, RC3H5Y, 
-      RC4H7Y, HE, AR]\n"""
-        f"  state: {{T: {temp}, P: {pres} atm, X: {{{x_str}}}}}\n"
+      R73C5H11O4UP, R74C5H11O4UP, R75C5H11O4UP, R76C5H11O4UP, 
+      RC3H5Y, RC4H7Y, HE, AR]\n"""
+        f"  state: {{T: {temp}, P: {pres} atm, X: {{{x_str}}}}}\n"   
     )
 
 # espèces de gaz
