@@ -64,11 +64,11 @@ col_a, col_b = st.columns(2)
 col_a.metric("Pressure", f"{pres:.2f} atm")
 col_b.metric("Temperature", f"{temp:.2f} K")
 
-# 2. Préparation des DataFrames pour un affichage élégant 
+# Préparation des DataFrames pour un affichage élégant 
 df_inertes = pd.DataFrame([data["INERTES"]])
 df_fuel = pd.DataFrame(list(data["FUEL"].items()), columns=["Espèce", "Valeur"])
 
-# 3. Affichage avec column_config (pour le formatage .2f et l'esthétique)
+# Affichage avec column_config (pour le formatage .2f et l'esthétique)
 st.write("### Added Species (mole fraction)")
 st.dataframe(
     df_inertes, 

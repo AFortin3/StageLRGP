@@ -51,6 +51,17 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
         repere = 5
     elif utils.composition[6] >= 1.0e-6:        # C2H4Z
         repere = 6
+    # --- Ajout des nouveaux gaz ---
+    elif utils.composition[14] >= 1.0e-6:       # C3H6Y
+        repere = 14
+    elif utils.composition[15] >= 1.0e-6:       # nC4H8Y
+        repere = 15
+    elif utils.composition[16] >= 1.0e-6:       # C6H14-1
+        repere = 16
+    elif utils.composition[17] >= 1.0e-6:       # C10H22-1
+        repere = 17
+    elif utils.composition[18] >= 1.0e-6:       # C12H26-1
+        repere = 18
     else:
         raise ValueError("Aucun combustible dominant détecté.")
     
@@ -69,7 +80,7 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
     
     for i, sp in enumerate(utils.species):
         if utils.composition[i+1] >= 1.0e-6: # on considère qu'une espèce est présente en quantité significative si sa fraction molaire est supérieure ou égale à 1.0e-6
-            if sp in ['H2', 'CH4', 'C2H6', 'B2CO', 'C3H8', 'C4H10', 'C5H12-1', 'C2H2T', 'C2H4Z']: # on ignore les espèces inertes (O2, N2, CO2, H2O) 
+            if sp in ['H2', 'CH4', 'C2H6', 'B2CO', 'C3H8', 'C4H10', 'C5H12-1', 'C2H2T', 'C2H4Z', 'C3H6Y', 'nC4H8Y', 'C6H14-1', 'C10H22-1', 'C12H26-1']: # on ignore les espèces inertes (O2, N2, CO2, H2O) 
                 fuel[sp] = utils.composition[i+1]
 
     if len(fuel) == 0:
@@ -155,7 +166,7 @@ def calcul_limite(gas, phi, fuel, tableau, T_ref, ratio_N2, ratio_O2, ratio_CO2,
     composition_avec_air[0] = tableau[0] # on place la température dans l'index 0 de la composition
     tableau = composition_avec_air.copy() # on copie la composition ajustée dans le tableau pour les calculs suivants
     
-    limite = tableau[1] + tableau[3] + tableau[5] + tableau[6] + tableau[7] + tableau[8] + tableau[9] + tableau[10] + tableau[11]
+    limite = sum(tableau[1:]) - (tableau[2] + tableau[4] + tableau[12] + tableau[13]) # on soustrait les gaz inertes pour ne garder que les combustibles
     limite = limite + ratio_N2 * tableau[repere] + ratio_O2 * tableau[repere] + ratio_CO2 * tableau[repere] + ratio_H2O * tableau[repere]
     limite = 100. * limite
     return round(phi, 4) , utils.pression , utils.temperature - 273.15 , float(T_ref) , float(limite) #, 100.*Add_CO2 , 100.*Add_N2 , 100.*Add_H2O 
