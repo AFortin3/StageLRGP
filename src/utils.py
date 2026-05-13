@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
 import cantera as ct
-from pathlib import Path
 
 global pression, temperature, composition, species, add_inertes
 pression = 20.265 # pression initiale en bar (20 atm)
@@ -13,7 +12,7 @@ add_inertes = dict() # dictionnaire pour stocker les gaz inertes ajoutés par l'
 
 # Cette fonction récupère la composition d'un mélange
 def get_composition(gas: ct.Solution) -> NDArray[np.float64]:
-    composition = gas.X.copy()  # tableau de 172 éléments
+    composition = gas.X.copy()  # tableau contenant tous les éléments du gaz
     composition = np.insert(composition, 0, np.nan)  # ajoute None en position 0
             
     return np.array(composition, dtype=float) # on convertit la composition en tableau numpy pour faciliter les calculs et on la retourne
@@ -49,16 +48,5 @@ def equilibrium(gas: ct.Solution, equivalence_ratio: float, fuel: dict) -> float
     # on retourne la température d'équilibre
     return gas.T 
 
-
-# Cette fonction crée un fichier (nom du fichier d'entrée ou results.txt par défaut) et y écrit les résultats des calculs de limites d'explosivité (LIE/LSE).
-def write_results(limites_list: list, fichier: str = "results.txt") -> None:
-    src = Path(__file__).resolve().parent
-    chemin = src.parent / 'data' / fichier # on construit le chemin vers le fichier de résultats à partir du dossier actuel et du dossier "data"
-    
-    with open(chemin, "w") as f: # on ouvre le fichier en mode écriture (il sera créé s'il n'existe pas ou écrasé s'il existe déjà)
-        for limites in limites_list:
-            f.write(f"\nLimites d'explosivité à P = {limites['LIE'][1]} bar et T = {limites['LIE'][2]} °C :\n"
-                    f"LIE = {limites['LIE'][4]} pour un ratio d'équivalence de Phi_Low  = {limites['LIE'][0]} et une température critique T_Low  = {limites['LIE'][3]} °C\n"
-                    f"LSE = {limites['LSE'][4]} pour un ratio d'équivalence de Phi_High = {limites['LSE'][0]} et une température critique T_High = {limites['LSE'][3]} °C\n")
 
 
