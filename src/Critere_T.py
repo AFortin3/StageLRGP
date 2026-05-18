@@ -182,7 +182,7 @@ def critere_T() -> tuple[float, float]:
     composition_1[12] = 0.
     composition_1[13] = 0.
     
-    T_Low  = np.sum( composition_1[1:] * critere_P[1:,1] ) / 100.
-    T_High = np.sum( composition_1[1:] * critere_P[1:,2] ) / 100. 
+    T_Low  = np.sum( composition_1[1:19] * critere_P[1:,1] ) / 100.
+    T_High = np.sum( composition_1[1:19] * critere_P[1:,2] ) / 100. 
     
     return (T_Low, T_High)
