@@ -14,7 +14,7 @@ with st.sidebar:
     # Section Physical Property
     st.subheader("Physical Properties")
     pres = st.number_input("Pressure (atm)", value=20.0, step=1.0)
-    temp = st.number_input("Temperature (K)", value=473.15, step=20.0)
+    temp = st.number_input("Temperature (°C)", value=200.0, step=20.0)
     
     # Section Added Species
     st.subheader("Added Species (mole fraction)")
@@ -53,7 +53,7 @@ st.write("### Résumé des paramètres choisis :")
 # Exemple d'affichage des données collectées
 data = {
     "PRES": pres,
-    "TEMP": temp,
+    "TEMP": temp + 273.15,  # Convertir en Kelvin pour les calculs
     "INERTES": {"CO2": add_co2, "H2O": add_h2o, "N2": add_n2},
     "FUEL": fuel_values
 }
@@ -61,7 +61,7 @@ data = {
 # Affichage des propriétés physiques en colonnes pour un rendu plus propre
 col_a, col_b = st.columns(2)
 col_a.metric("Pressure", f"{pres:.2f} atm")
-col_b.metric("Temperature", f"{temp:.2f} K")
+col_b.metric("Temperature", f"{temp:.2f} °C")
 
 # Préparation des DataFrames pour un affichage élégant 
 df_inertes = pd.DataFrame([data["INERTES"]])
