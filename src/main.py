@@ -15,7 +15,7 @@ def main():
     # On demande à l'utilisateur de saisir le nom du fichier à charger
     while True:
         #fichier = input("Input file (with extension): ")
-        fichier = "M27_50.yaml"
+        fichier = "d1.txt"
         
         try: 
             gas = mixture(fichier) # on tente de récupérer les données du fichier spécifié par l'utilisateur

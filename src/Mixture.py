@@ -1,6 +1,5 @@
 import cantera as ct
 from pathlib import Path
-from format_yaml import format_desc, format_species
 
 import utils
 
@@ -72,11 +71,12 @@ def ajouter_inertes():
     
     
 # cette fonction lit un fichier txt contenant les données de pression, température, espèces de carburant et gaz inertes, 
-# et écrit un fichier yaml à partir de ces données pour pouvoir les charger dans Cantera. 
-# Elle retourne ensuite l'objet gas créé à partir du fichier yaml.
+# et crée un objet "gas" par défaut dans lequel on va placer ces données. 
+# Elle retourne ensuite l'objet gas créé.
 def create_from_txt(fichier: str) -> ct.Solution:
     src = Path(__file__).resolve().parent # Récupère le chemin du dossier actuel (src) pour construire le chemin vers le fichier txt dans le dossier data
     chemin_txt = src.parent / "data" / fichier # Construit le chemin vers le fichier txt à partir du dossier actuel et du nom de fichier fourni par l'utilisateur
+    ct.add_data_directory(str(src)) # Ajoute le dossier actuel (src) à la liste des répertoires de données de Cantera
     
     with open(chemin_txt, 'r', encoding="utf-8") as f:
         lines = f.readlines()
@@ -121,21 +121,18 @@ def create_from_txt(fichier: str) -> ct.Solution:
     
     utils.add_inertes = inertes # on stocke les gaz inertes dans une variable globale (utils.add_inertes) et on les ajoutera lors du set_equivalence_ratio dans LIE_LSE_V2.py
             
-    chemin_yaml = write_yaml_from_data(chemin_txt, pres, temp, species, inertes) # après avoir extrait les données du fichier txt, on crée un fichier yaml à partir de ces données 
+    gas = ct.Solution("output_convert.yaml") # on charge ensuite le fichier yaml "output_convert.yaml" qui contient les définitions de toutes les espèces possibles (carburants et inertes) 
     
-    gas = ct.Solution(chemin_yaml) # on charge ensuite le fichier yaml créé dans Cantera pour obtenir un objet gas utilisable dans les calculs
+    # on met à jour la composition du gaz puis la température et la pression à partir des données fournies par l'utilisateur via le fichier txt
+    composition = gas.X.copy()  # # tableau contenant tous les éléments du gaz
+    for sp, value in species.items(): # on parcourt les espèces de carburant spécifiées dans le fichier txt et leurs valeurs respectives
+        idx = gas.species_index(sp) # index de l'espèce dans l'objet "gas" de Cantera
+        composition[idx] = value / 100 # on convertit les pourcentages en fractions molaires
+    t = temp # température en K
+    p = pres * 101300 # conversion de la pression de "atm" à "Pa"
+    gas.TPX = t, p, composition # on met à jour la température, la pression et la composition du gaz, Cantera recalcule le reste des valeurs
+    
     return gas
     
 
-# cette fonction crée un fichier yaml à partir des données extraites du fichier txt, en respectant la structure attendue par Cantera pour les fichiers de données de gaz.
-def write_yaml_from_data(chemin_txt: Path, pres: float, temp: float, species: dict, inertes: dict) -> Path:
-    chemin_yaml = chemin_txt.with_suffix(".yaml") # on change l'extension du fichier txt en yaml pour créer le chemin du fichier yaml à écrire
-
-    contenu = format_desc(str(chemin_txt), temp, pres, species) # on utilise la fonction format_desc pour créer la partie description du fichier yaml
-    contenu += format_species() # on ajoute ensuite la partie species du fichier yaml (format_species)
-
-    with open(chemin_yaml, "w", encoding="utf-8") as f: 
-        f.write(contenu)
-    
-    return chemin_yaml
 

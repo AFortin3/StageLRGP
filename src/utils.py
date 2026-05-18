@@ -4,13 +4,20 @@ import cantera as ct
 from pathlib import Path
 
 global pression, temperature, composition, species, add_inertes
-species = ['H2','H2O', 'B2CO', 'CO2', 'C2H2T', 'C2H4Z', 'CH4', 'C2H6', 'C3H8','C4H10','C5H12-1', 'O2', 'N2']
+pression = 20.265 # pression initiale en bar (20 atm)
+temperature = 473.15 # température initiale en K (200 °C) 
+composition = dict() # dictionnaire pour stocker la composition du mélange de gaz (en fraction molaire)
+species = [
+    'H2', 'H2O', 'B2CO', 'CO2', 'C2H2T', 'C2H4Z', 
+    'CH4', 'C2H6', 'C3H8', 'C4H10', 'C5H12-1', 'O2', 'N2', 
+    'C3H6Y', 'nC4H8Y', 'C6H14-1', 'C10H22-1', 'C12H26-1'
+]
 add_inertes = dict() # dictionnaire pour stocker les gaz inertes ajoutés par l'utilisateur et leurs quantités respectives (en fraction molaire)
 
 
 # Cette fonction récupère la composition d'un mélange
 def get_composition(gas: ct.Solution) -> NDArray[np.float64]:
-    composition = gas.X.copy()  # tableau de 172 éléments
+    composition = gas.X.copy()  # tableau contenant tous les éléments du gaz
     composition = np.insert(composition, 0, np.nan)  # ajoute None en position 0
             
     return np.array(composition, dtype=float) # on convertit la composition en tableau numpy pour faciliter les calculs et on la retourne
@@ -45,7 +52,6 @@ def equilibrium(gas: ct.Solution, equivalence_ratio: float, fuel: dict) -> float
     
     # on retourne la température d'équilibre
     return gas.T 
-
 
 # Cette fonction crée un fichier (nom du fichier d'entrée ou results.txt par défaut) et y écrit les résultats des calculs de limites d'explosivité (LIE/LSE).
 def write_results(limites_list: list, fichier: str = "results.txt") -> None:

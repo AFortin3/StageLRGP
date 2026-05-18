@@ -5,7 +5,7 @@ import utils
 
 # On récupère les seuils de température critiques (T_low et T_high) pour le mélange (subroutine Critere_T.f90)
 def critere_T() -> tuple[float, float]:
-    critere_P = np.zeros((14, 3), dtype=float) # initialisation du tableau des critères de température (avec ligne et colonne 0 nulles pour éviter les erreurs d'indexation)
+    critere_P = np.zeros((19, 3), dtype=float) # initialisation du tableau des critères de température (avec ligne et colonne 0 nulles pour éviter les erreurs d'indexation)
 
     # Critere Low_T
     critere_P[1,1] = 629.  # H2
@@ -21,6 +21,11 @@ def critere_T() -> tuple[float, float]:
     critere_P[11,1] = 1670.# C5H12-1
     critere_P[12,1] = 0.   # O2
     critere_P[13,1] = 0.   # N2
+    critere_P[14,1] = 1514. # C3H6Y
+    critere_P[15,1] = 1509. # nC4H8Y
+    critere_P[16,1] = 1511. # C6H14-1
+    critere_P[17,1] = 1710. # C10H22-1
+    critere_P[18,1] = 1912. # C12H26-1
     
     # Critere Up_T - 1 Bar
     critere_P[1,2] = 1124. # H2    *** correctif avant 1192
@@ -36,10 +41,15 @@ def critere_T() -> tuple[float, float]:
     critere_P[11,2] = 1040.# C5H12-1
     critere_P[12,2] = 0.   # O2
     critere_P[13,2] = 0.   # N2 
+    critere_P[14,2] = 1413. # C3H6Y
+    critere_P[15,2] = 1226. # nC4H8Y
+    critere_P[16,2] = 1024. # C6H14-1
+    critere_P[17,2] = 1021. # C10H22-1
+    critere_P[18,2] = 1007. # C12H26-1
     
     
     # correction critère pour des pressions de 1 à 100 bar
-    correction_P = np.zeros((5, 8), dtype=float) # initialisation du tableau des corrections de température (avec ligne et colonne 0 nulles pour éviter les erreurs d'indexation)
+    correction_P = np.zeros((7, 8), dtype=float) # initialisation du tableau des corrections de température (avec ligne et colonne 0 nulles pour éviter les erreurs d'indexation)
     
     # CH4
     correction_P[1,1] = critere_P[7,2]
@@ -77,9 +87,26 @@ def critere_T() -> tuple[float, float]:
     correction_P[4,6] = 1000. 
     correction_P[4,7] = 1000. 
     
+    # C3H6Y (Index 5)
+    correction_P[5,1] = 1413. # 1 bar
+    correction_P[5,2] = 1413. # 1-5 bar (linéaire entre 1 et 5)
+    correction_P[5,3] = 1100. # 5-10 bar
+    correction_P[5,4] = 1070. # 10-20 bar
+    correction_P[5,5] = 1030. # 20-40 bar
+    correction_P[5,6] = 1000. # 40-50 bar
+    correction_P[5,7] = 1000. # > 50 bar
+
+    # nC4H8Y (Index 6)
+    correction_P[6,1] = 1226. # 1 bar
+    correction_P[6,2] = 1226. # 1-5 bar
+    correction_P[6,3] = 1040. # 5-10 bar
+    correction_P[6,4] = 1000. # 10-20 bar
+    correction_P[6,5] = 1000. # > 20 bar
+    correction_P[6,6] = 1000. 
+    correction_P[6,7] = 1000.
     
-    # Effet de la pression pour C1 - C2 - C3 - C4 
-    indice = 0
+    
+    # Effet de la pression pour C1 - C2 - C3 - C4 (+ C3H6Y et nC4H8Y) 
     plage_P = np.array([0., 1., 5., 10., 20., 40., 50., 100.]) # en bar
            
     if ( utils.pression <= plage_P[2] ):
@@ -94,15 +121,17 @@ def critere_T() -> tuple[float, float]:
         indice = 5
     elif ( utils.pression > plage_P[6] and utils.pression <= plage_P[7] ):
         indice = 6
+    else:
     # pour les pressions > 100 bar, on considère que les critères de température sont ceux à 50 bar (température = 1000 de toute façon)
     # sinon cela causerait un problème d'indice (array out of bounds) pour l'indice = 7 (il cherche l'indice 7+1 = 8 qui n'existe pas dans le tableau)
-    else:
         indice = 6 # 6 au lieu de 7
         
     critere_P[7,2] = correction_P[1,indice] + ( correction_P[1,indice+1] - correction_P[1,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( utils.pression - plage_P[indice] ) # CH4
     critere_P[8,2] = correction_P[2,indice] + ( correction_P[2,indice+1] - correction_P[2,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( utils.pression - plage_P[indice] ) # C2H6
     critere_P[9,2] = correction_P[3,indice] + ( correction_P[3,indice+1] - correction_P[3,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( utils.pression - plage_P[indice] ) # C3H8
     critere_P[10,2]= correction_P[4,indice] + ( correction_P[4,indice+1] - correction_P[4,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( utils.pression - plage_P[indice] ) # C4H10
+    critere_P[14,2] = correction_P[5,indice] + ( correction_P[5,indice+1] - correction_P[5,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( utils.pression - plage_P[indice] ) # C3H6Y
+    critere_P[15,2] = correction_P[6,indice] + ( correction_P[6,indice+1] - correction_P[6,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( utils.pression - plage_P[indice] ) # nC4H8Y
     
     
     # H2
@@ -153,7 +182,7 @@ def critere_T() -> tuple[float, float]:
     composition_1[12] = 0.
     composition_1[13] = 0.
     
-    T_Low  = np.sum( composition_1[1:14] * critere_P[1:,1] ) / 100.
-    T_High = np.sum( composition_1[1:14] * critere_P[1:,2] ) / 100. 
+    T_Low  = np.sum( composition_1[1:19] * critere_P[1:,1] ) / 100.
+    T_High = np.sum( composition_1[1:19] * critere_P[1:,2] ) / 100. 
     
     return (T_Low, T_High)
