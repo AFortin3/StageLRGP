@@ -1,5 +1,3 @@
-import numpy as np
-from numpy.typing import NDArray
 from cantera import Solution
 
 import utils
