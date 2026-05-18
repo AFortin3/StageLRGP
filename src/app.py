@@ -14,7 +14,7 @@ with st.sidebar:
     # Section Physical Property
     st.subheader("Physical Properties")
     pres = st.number_input("Pressure (atm)", value=20.0, step=1.0)
-    temp = st.number_input("Temperature (°C)", value=200, step=20.0)
+    temp = st.number_input("Temperature (°C)", value=200.0, step=20.0)
     
     # Section Added Species
     st.subheader("Added Species (mole fraction)")
