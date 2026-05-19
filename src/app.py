@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 
 import utils
-from main import main_streamlit
 
 st.title("Mélange de gaz")
 
@@ -97,7 +96,7 @@ st.divider()
 st.subheader("Résultats de la Simulation")
 
 try:
-    limites = main_streamlit(data)
+    limites = utils.main_streamlit(data)
 except Exception as e:
     st.error(f"Erreur: {e}")
     st.stop()
@@ -115,8 +114,55 @@ with col1:
     st.write(f"**T_Low:** {limites['LIE'][3]:.2f} °C")
 
 with col2:
-    st.warning("**Limite Supérieure d'Explosivité (LSE)**")
+    st.error("**Limite Supérieure d'Explosivité (LSE)**")
     st.metric("LSE", f"{limites['LSE'][4]:.4f} %")
     st.write(f"**Phi High:** {limites['LSE'][0]:.3f}")
     st.write(f"**T_High:** {limites['LSE'][3]:.2f} °C")
+    
+    
+    
+# Création d'un expander pour étendre les calculs à une plage de température / pression
+st.divider()
+st.subheader("Analyse détaillée (plage de T et P)")
 
+with st.expander("Configurer une plage de calcul", expanded=False):
+    st.write("Définissez les bornes pour effectuer une étude paramétrique.")
+    
+    col_t1, col_t2, col_t3 = st.columns(3)
+    t_min = col_t1.number_input("T min (°C)", value=20.0, step=5.0)
+    t_max = col_t2.number_input("T max (°C)", value=100.0, step=5.0)
+    dt = col_t3.number_input("Pas T (°C)", value=10.0, min_value=1.0, step=5.0)
+    
+    col_p1, col_p2, col_p3 = st.columns(3)
+    p_min = col_p1.number_input("P min (atm)", value=1.0, step=1.0)
+    p_max = col_p2.number_input("P max (atm)", value=10.0, step=1.0)
+    dp = col_p3.number_input("Pas P (atm)", value=1.0, min_value=0.1, step=1.0)
+    
+    # Calcul du nombre de points pour prévenir l'utilisateur
+    nb_t = int((t_max - t_min) / dt) + 1
+    nb_p = int((p_max - p_min) / dp) + 1
+    total_runs = nb_t * nb_p
+    
+    placeholder_avertissement = st.empty() # Placeholder pour afficher le message d'avertissement
+    if total_runs > 40: # Seuil arbitraire pour afficher un avertissement si le nombre de simulations est élevé
+        placeholder_avertissement.warning(f"⚠️ Attention : {total_runs} simulations seront lancées. Cela peut prendre du temps.") # Affiche un avertissement avant de lancer les calculs
+
+    # affichage des résultats  
+    c1, c2, c3 = st.columns([8, 8, 7.5])   
+    placeholder_btn = c2.empty() # Placeholder pour le bouton, afin de le désactiver pendant les calculs
+    if placeholder_btn.button("Lancer les calculs de plage"):
+        # Effacer le bouton et l'avertissement immédiatement
+        placeholder_btn.empty()
+        placeholder_avertissement.empty()
+        
+        # On utilise une disposition colonnes pour créer un centrage
+        col_spinner1, col_spinner2, col_spinner3 = st.columns([3, 2, 3])
+        with col_spinner2:
+            with st.spinner("Calcul en cours..."):
+                resultats_plage = utils.calcul_plage(t_min, t_max, dt, p_min, p_max, dp) # Appel de la fonction de calcul pour la plage de T et P 
+                
+        st.success("Calculs terminés !")
+        st.dataframe(resultats_plage)
+
+
+ 
