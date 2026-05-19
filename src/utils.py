@@ -72,7 +72,7 @@ def get_composition(gas: ct.Solution) -> NDArray[np.float64]:
 def equilibrium(gas: ct.Solution, equivalence_ratio: float, fuel: dict) -> float: 
     
     # on définit la température, la pression et la composition du mélange de gaz à partir des variables globales
-    gas.TPX = temperature, pression * 101325, composition[1:] 
+    gas.TPX = temperature, pression * 100000, composition[1:] 
 
     # on définit le ratio de l'air/carburant pour le mélange de gaz en ajoutant les gaz inertes (s'il y en a) à l'oxydant (air) dans la fonction set_equivalence_ratio de Cantera
     if sum(add_inertes.values()) > 0.0:
