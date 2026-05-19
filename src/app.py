@@ -144,8 +144,7 @@ with st.expander("Configurer une plage de calcul", expanded=False):
     total_runs = nb_t * nb_p
     
     placeholder_avertissement = st.empty() # Placeholder pour afficher le message d'avertissement
-    if total_runs > 40: # Seuil arbitraire pour afficher un avertissement si le nombre de simulations est élevé
-        placeholder_avertissement.warning(f"⚠️ Attention : {total_runs} simulations seront lancées. Cela peut prendre du temps.") # Affiche un avertissement avant de lancer les calculs
+    placeholder_avertissement.warning(f"⚠️ Attention : {total_runs} simulations seront lancées. Cela peut prendre du temps.") # Affiche un avertissement avant de lancer les calculs
 
     # affichage des résultats  
     c1, c2, c3 = st.columns([8, 8, 7.5])   
