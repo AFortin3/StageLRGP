@@ -15,6 +15,9 @@ def main():
     # On demande à l'utilisateur de saisir le nom du fichier à charger
     while True:
         fichier = input("Input file (with extension): ")
+        if fichier == "":
+            print("No file specified, loading default file (d1.txt).")
+            fichier = "d1.txt"
         
         try: 
             gas = mixture(fichier) # on tente de récupérer les données du fichier spécifié par l'utilisateur
