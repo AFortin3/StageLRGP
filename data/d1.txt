@@ -8,25 +8,30 @@ TEMP 473.15   ! Temperature (K)
 ! 
 ! species property
 ! 
-ADD CO2 0.1   ! Added Species Fraction of Total Reactant Species (mole fraction)
+ADD CO2 0.0   ! Added Species Fraction of Total Reactant Species (mole fraction)
 ADD H2O 0.0   ! Added Species Fraction of Total Reactant Species (mole fraction)
 ADD N2 0.0   ! Added Species Fraction of Total Reactant Species (mole fraction)
 !
 ! FUEL - Garder dans l'ordre et toutes les especes
 ! 
-FUEL H2      0
-FUEL H2O     0
-FUEL B2CO    0
-FUEL CO2     0
-FUEL C2H2T   0
-FUEL C2H4Z   0
-FUEL CH4     0
-FUEL C2H6    0
-FUEL C3H8    100
-FUEL C4H10   0
-FUEL C5H12-1 0
-FUEL O2      0
-FUEL N2      0
+FUEL H2       0
+FUEL H2O      0
+FUEL B2CO     0
+FUEL CO2      0
+FUEL C2H2T    0
+FUEL C2H4Z    0
+FUEL CH4      0
+FUEL C2H6     0
+FUEL C3H8     100
+FUEL C4H10    0
+FUEL C5H12-1  0
+FUEL O2       0
+FUEL N2       0
+FUEL C3H6Y    0
+FUEL nC4H8Y   0
+FUEL C6H14-1  0
+FUEL C10H22-1 0
+FUEL C12H26-1 0
 !
 END
 

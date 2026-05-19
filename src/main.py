@@ -14,8 +14,11 @@ def main():
     
     # On demande à l'utilisateur de saisir le nom du fichier à charger
     while True:
-        #fichier = input("Input file (with extension): ")
-        fichier = "d1.txt"
+        fichier = input("Input file (with extension): ")
+        fichier = fichier.strip() # on supprime les espaces en début et fin de chaîne pour éviter les erreurs de chargement du fichier
+        if fichier == "":
+            print("No file specified, loading default file (d1.txt).")
+            fichier = "d1.txt"
         
         try: 
             gas = mixture(fichier) # on tente de récupérer les données du fichier spécifié par l'utilisateur
@@ -51,6 +54,10 @@ def main():
         "\nLSE = ", (limites["LSE"]))
     
     
+    continuer = input("\nAppuyez sur Entrée pour continuer et calculer les limites d'explosivité à différentes températures et pressions... (saisissez n'importe quoi pour interrompre) : ")
+    if continuer.strip() != "":
+        print("Calculs interrompus.")
+        return
     
     # On calcule maintenant selon plusieurs températures et pressions les LIE/LSE : 
     limites_list = []
@@ -69,7 +76,12 @@ def main():
               "\nLIE = ", limites["LIE"][4], " pour un ratio d'équivalence de Phi_Low  = ", limites["LIE"][0], " et une température critique T_Low  = ", limites["LIE"][3], "°C",
               "\nLSE = ", limites["LSE"][4], " pour un ratio d'équivalence de Phi_High = ", limites["LSE"][0], " et une température critique T_High = ", limites["LSE"][3], "°C")
         
-    #utils.write_results(limites_list) # on écrit les résultats dans un fichier texte
+    save = input("\nVoulez-vous enregistrer les résultats dans un fichier texte ? (y/n)")
+    if save.strip().lower() == 'y':
+        save = input("Nom du fichier de résultats (avec extension, par défaut results.txt) : ")
+        if save == "":
+            save = "results.txt"
+        utils.write_results(limites_list, save) # on écrit les résultats dans un fichier texte
     
     
 if __name__ == "__main__":
