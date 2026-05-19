@@ -35,7 +35,7 @@ def main():
     # On récupère la composition du mélange à partir des données chargées
     utils.composition = utils.get_composition(gas)
     print("\nComposition initiale :")
-    for i, fraction in enumerate(utils.composition[1:14]): # on ignore composition[0] qui est None
+    for i, fraction in enumerate(utils.composition[1:19]): # on ignore composition[0] qui est None
         print(f"{utils.species[i]}: {fraction:.2f}")
     
     # On ajuste les températures critiques à partir des données chargées

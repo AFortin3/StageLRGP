@@ -131,7 +131,7 @@ def create_from_txt(fichier: str) -> ct.Solution:
     t = temp # température en K
     p = pres * 101300 # conversion de la pression de "atm" à "Pa"
     gas.TPX = t, p, composition # on met à jour la température, la pression et la composition du gaz, Cantera recalcule le reste des valeurs
-    
+    gas()
     return gas
     
 
