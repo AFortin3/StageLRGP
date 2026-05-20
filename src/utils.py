@@ -4,8 +4,8 @@ import pandas as pd
 import cantera as ct
 from pathlib import Path
 
-from Critere_T import critere_T
-from LIE_LSE_V2 import lie_lse
+from core.Critere_T import critere_T
+from core.LIE_LSE_V2 import lie_lse
 
 global pression, temperature, composition, species, add_inertes, gas
 pression = 20.0 # pression initiale en bar (~20 atm)
@@ -20,7 +20,8 @@ add_inertes = dict() # dictionnaire pour stocker les gaz inertes ajoutés par l'
 
 # on ajoute le dossier actuel à la liste des répertoires de données de Cantera 
 src = Path(__file__).resolve().parent # Récupère le chemin du dossier actuel
-ct.add_data_directory(str(src)) # Ajoute le dossier à la liste des répertoires de données de Cantera
+dossier = src / 'data' # Construit le chemin vers le dossier "data" à partir du dossier actuel
+ct.add_data_directory(str(dossier)) # Ajoute le dossier à la liste des répertoires de données de Cantera
 
 # on essaie de charger les données de la réaction de combustion à partir du fichier "output_convert.yaml" et de créer un objet "gas" par défaut à partir de ces données.
 try: 
