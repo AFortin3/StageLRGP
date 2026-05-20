@@ -8,7 +8,7 @@ from Critere_T import critere_T
 from LIE_LSE_V2 import lie_lse
 
 global pression, temperature, composition, species, add_inertes, gas
-pression = 20.265 # pression initiale en bar (20 atm)
+pression = 20.0 # pression initiale en bar (~20 atm)
 temperature = 473.15 # température initiale en K (200 °C) 
 composition = dict() # dictionnaire pour stocker la composition du mélange de gaz (en fraction molaire)
 species = [
@@ -42,7 +42,7 @@ def main_streamlit(data: dict):
         idx = gas.species_index(sp) # index de l'espèce dans l'objet "gas" de Cantera
         c[idx] = value / 100 # on convertit les pourcentages en fractions molaires
     t = data["TEMP"] # température en K
-    p = data["PRES"] * 101300 # conversion de la pression de "atm" à "Pa"
+    p = data["PRES"] * 100000 # conversion de la pression de "bar" à "Pa"
     gas.TPX = t, p, c # on met à jour la température, la pression et la composition du gaz, Cantera recalcule le reste des valeurs
             
     # On initialise les variables globales
@@ -114,7 +114,7 @@ def calcul_plage(t_min: float, t_max: float, dt: float, p_min: float, p_max: flo
             temperature = t_val + 273.15
             
             # Mise à jour du gaz
-            gas.TP = temperature, pression * 101325 
+            gas.TP = temperature, pression * 100000 
             
             # Calcul
             temperatures = critere_T()
@@ -123,7 +123,7 @@ def calcul_plage(t_min: float, t_max: float, dt: float, p_min: float, p_max: flo
             # Stockage
             results.append({
                 "T (°C)": t_val,
-                "P (atm)": p_val,
+                "P (bar)": p_val,
                 "LIE": res['LIE'][4],
                 "LSE": res['LSE'][4]
             })
