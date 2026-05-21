@@ -114,9 +114,6 @@ def calcul_plage(t_min: float, t_max: float, dt: float, p_min: float, p_max: flo
             pression = p_val
             temperature = t_val + 273.15
             
-            # Mise à jour du gaz
-            gas.TP = temperature, pression * 100000 
-            
             # Calcul
             temperatures = critere_T()
             res = lie_lse(gas, temperatures[0], temperatures[1])

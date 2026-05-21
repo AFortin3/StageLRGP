@@ -1,6 +1,6 @@
 import streamlit as st
 
-import utils as utils
+import utils
 from components.sidebar import render_sidebar
 from components.dashboard import show_gas_properties, show_limites_results, render_analysis_expander
 
