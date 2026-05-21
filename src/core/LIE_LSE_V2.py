@@ -1,6 +1,7 @@
 from cantera import Solution
 
 import utils
+from logger import log
 
 # On calcule les LIE/LSE du mélange (subroutine LIE_LSE_V2.f90)
 def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
@@ -52,69 +53,91 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
     if utils.composition[2] >= 1.0e-8:
         ratio_H2O = utils.composition[2] / fuel_quantity
     
-        
     # Phase 1 - Recherche de la LIE
+    log("############################### - PHASE 1 - RECHERCHE DE LA LIE - #################################\n")
     equivalence_ratio_up    = 1.0
     equivalence_ratio_down  = 0.01
     equivalence_ratio = ( equivalence_ratio_up + equivalence_ratio_down ) / 2.0
-     
+    
     tableau = utils.composition.copy()
     tableau[0] = 2000.0 # on place la température dans l'index 0 du tableau (qui contenait la valeur None de composition[0])
-    precision = 2.0
+    precision = 0.05
+    equivalence_ratio_precision = 0.005
     val_OK = 0
+    
+    log(f"température cible pour la LIE : {T_Low:.2f} K\n")
     
     while ( abs( T_Low - tableau[0] ) >= precision ):
         
+        log(f"equivalence_ratio : {equivalence_ratio} (entre {equivalence_ratio_down} et {equivalence_ratio_up})\n")
         tableau[0] = utils.equilibrium(gas, equivalence_ratio, fuel) # au lieu d'appeler Chemkin, on utilise directement le calcul de l'équilibre de Cantera (via la fonction equilibrate)
         
         if ( ( T_Low - tableau[0] ) <= 0.0 ):
             equivalence_ratio_up = equivalence_ratio
+            log(f"Température calculée {tableau[0]:.2f} K est supérieure ou égale à la température cible {T_Low:.2f} K, on ajuste la borne supérieure de l'équivalence ratio à {equivalence_ratio_up:.4f}")
         else:
             equivalence_ratio_down = equivalence_ratio
+            log(f"Température calculée {tableau[0]:.2f} K est inférieure à la température cible {T_Low:.2f} K, on ajuste la borne inférieure de l'équivalence ratio à {equivalence_ratio_down:.4f}")
         
         if ( abs( equivalence_ratio_down - 1.0 ) <= 0.03 or abs( equivalence_ratio_up - 0.01 ) <= 0.03 ):
+            log("Limite d'équivalence atteinte (LIE < 0.01 ou LIE > 1.0)\n")
+            log("==================================================\n")
             val_OK = 1
             break
         
         equivalence_ratio = ( equivalence_ratio_up + equivalence_ratio_down ) / 2.0
+        log(f"Nouvelle valeur d'équivalence_ratio : {equivalence_ratio} (entre {equivalence_ratio_down} et {equivalence_ratio_up})\n")
         
-        if ( abs( equivalence_ratio_up - equivalence_ratio_down ) <= 0.05 ):
+        if ( abs( equivalence_ratio_up - equivalence_ratio_down ) <= equivalence_ratio_precision ):
+            log(f"Précision atteinte (différence entre les bornes d'équivalence ratio <= {equivalence_ratio_precision})\n")
+            log("==================================================\n")
             break
         
     if ( val_OK != 1 ):
         # on appelle la fonction de calcul de la limite d'explosivité pour calculer la LIE à partir du ratio d'équivalence trouvé et des propriétés du gaz
+        log(f"Calcul de la LIE à partir du ratio d'équivalence trouvé : {equivalence_ratio}\n")
         resultat["LIE"] = calcul_limite(gas, equivalence_ratio, fuel, tableau, T_Low, ratio_N2, ratio_O2, ratio_CO2, ratio_H2O, fuel_quantity) 
         
     
     # Phase 2 - Recherche de la LSE
+    log("############################### - PHASE 2 - RECHERCHE DE LA LSE - #################################\n")
     equivalence_ratio_up    = 50.0
     equivalence_ratio_down  = 1.0
     equivalence_ratio = ( equivalence_ratio_up + equivalence_ratio_down ) / 2.0
     
     tableau[0] = 100.0
-    precision = 2.0
     val_OK = 0
     
+    log(f"température cible pour la LSE : {T_High:.2f} K\n")
+    
     while ( abs( T_High - tableau[0] ) >= precision ):
-        
+        log(f"equivalence_ratio : {equivalence_ratio} (entre {equivalence_ratio_down} et {equivalence_ratio_up})\n")
         tableau[0] = utils.equilibrium(gas, equivalence_ratio, fuel) # au lieu d'appeler Chemkin, on utilise directement le calcul de l'équilibre de Cantera (via la fonction equilibrate)
         
         if ( ( T_High - tableau[0] ) >= 0.0 ):
             equivalence_ratio_up = equivalence_ratio
+            log(f"Température calculée {tableau[0]:.2f} K est inférieure ou égale à la température cible {T_High:.2f} K, on ajuste la borne supérieure de l'équivalence ratio à {equivalence_ratio_up:.4f}")
         else:
             equivalence_ratio_down = equivalence_ratio
+            log(f"Température calculée {tableau[0]:.2f} K est supérieure à la température cible {T_High:.2f} K, on ajuste la borne inférieure de l'équivalence ratio à {equivalence_ratio_down:.4f}")
         
-        if ( abs( equivalence_ratio_up - 1.0 ) <= 0.03 or abs( equivalence_ratio_down - 20.0 ) <= 0.03 ):
+        if ( abs( equivalence_ratio_up - 1.0 ) <= 0.03 or abs( equivalence_ratio_down - 50 ) <= 0.03 ):
+            log("Limite d'équivalence atteinte (LSE < 1.0 ou LSE > 50.0)\n")
+            log("==================================================\n")
             val_OK = 1
             break
         
         equivalence_ratio = ( equivalence_ratio_up + equivalence_ratio_down ) / 2.0
+        log(f"Nouvelle valeur d'équivalence_ratio : {equivalence_ratio} (entre {equivalence_ratio_down} et {equivalence_ratio_up})\n")
         
-        if ( abs( equivalence_ratio_up - equivalence_ratio_down ) <= 0.05 ):
+        if ( abs( equivalence_ratio_up - equivalence_ratio_down ) <= equivalence_ratio_precision ):
+            log(f"Précision atteinte (différence entre les bornes d'équivalence ratio <= {equivalence_ratio_precision})\n")
+            log("==================================================\n")
             break
         
     if ( val_OK != 1 ):
         # on appelle la fonction de calcul de la limite d'explosivité pour calculer la LSE à partir du ratio d'équivalence trouvé et des propriétés du gaz
+        log(f"Calcul de la LSE à partir du ratio d'équivalence trouvé : {equivalence_ratio}\n")
         resultat["LSE"] = calcul_limite(gas, equivalence_ratio, fuel, tableau, T_High, ratio_N2, ratio_O2, ratio_CO2, ratio_H2O, fuel_quantity) 
     
         
@@ -132,8 +155,14 @@ def calcul_limite(gas, phi, fuel, tableau, T_ref, ratio_N2, ratio_O2, ratio_CO2,
     composition_avec_air[0] = tableau[0] # on place la température dans l'index 0 de la composition
     tableau = composition_avec_air.copy() # on copie la composition ajustée dans le tableau pour les calculs suivants
     
-    limite = sum(tableau[1:]) - (tableau[2] + tableau[4] + tableau[12] + tableau[13]) # on soustrait les gaz inertes pour ne garder que les combustibles
-    limite = limite + ratio_N2 * fuel_quantity + ratio_O2 * fuel_quantity + ratio_CO2 * fuel_quantity + ratio_H2O * fuel_quantity
-    limite = 100. * limite
+    with open("resultats_debug.txt", "a") as f:
+        limite = sum(tableau[1:]) - (tableau[2] + tableau[4] + tableau[12] + tableau[13]) # on soustrait les gaz inertes pour ne garder que les combustibles
+        log(f"contribution des combustibles : {limite:.4f}\n")
+        limite = limite + ratio_N2 * fuel_quantity + ratio_O2 * fuel_quantity + ratio_CO2 * fuel_quantity + ratio_H2O * fuel_quantity
+        log(f"contribution des inertes : {(ratio_N2 * fuel_quantity + ratio_O2 * fuel_quantity + ratio_CO2 * fuel_quantity + ratio_H2O * fuel_quantity):.4f}\n") 
+        limite = 100. * limite
+        log(f"limite d'explosivité calculée : {limite:.4f} %\n")
+        
     return round(phi, 4) , utils.pression , utils.temperature - 273.15 , float(T_ref) , float(limite) #, 100.*Add_CO2 , 100.*Add_N2 , 100.*Add_H2O 
-    
+        
+        

@@ -34,7 +34,7 @@ def render_sidebar():
         fuel_values = {}
         for fuel in utils.species:
             default_val = 100 if fuel == "C3H8" else 0
-            fuel_values[fuel] = st.number_input(f"FUEL {fuel}", value=default_val, min_value=0.0, max_value=100, step=10)
+            fuel_values[fuel] = st.number_input(f"FUEL {fuel}", value=float(default_val), min_value=0.0, max_value=100.0, step=10.0)
             
         # Normalisation des carburants (pour bien avoir 100% au total)
         fuel_total = sum(fuel_values.values())

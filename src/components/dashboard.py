@@ -95,13 +95,15 @@ def render_analysis_expander():
         placeholder_avertissement = st.empty() # Placeholder pour afficher le message d'avertissement
         if st.session_state.resultats_plage is None:
             placeholder_avertissement.warning(f"⚠️ Attention : {total_runs} simulations seront lancées. Cela peut prendre du temps.") # Affiche un avertissement avant de lancer les calculs
-
+            st.session_state['initialized'] = False # On marque que les calculs ne sont pas encore effectués
+            
             c1, col_btn, c3 = st.columns([8, 8, 7.5]) # pour centrer le bouton
             placeholder_btn = col_btn.empty() # Placeholder pour le bouton, afin de le désactiver pendant les calculs
             if placeholder_btn.button("Lancer les calculs de plage"):
                 # Effacer le bouton et l'avertissement immédiatement
                 placeholder_btn.empty()
                 placeholder_avertissement.empty()
+                st.session_state['initialized'] = True # On marque que les calculs sont effectués
                 
                 c1, col_spinner, c3 = st.columns([3, 2, 3])
                 with col_spinner:
