@@ -52,6 +52,9 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
     if utils.composition[2] >= 1.0e-8:
         ratio_H2O = utils.composition[2] / fuel_quantity
     
+    # on définit les précisions pour la recherche de la LIE et de la LSE (pour la température et le ratio d'équivalence)
+    temp_precision = 0.05 # par défaut : 2.0
+    phi_precision = 0.005 # par défaut : 0.05
         
     # Phase 1 - Recherche de la LIE
     equivalence_ratio_up    = 1.0
@@ -60,10 +63,9 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
      
     tableau = utils.composition.copy()
     tableau[0] = 2000.0 # on place la température dans l'index 0 du tableau (qui contenait la valeur None de composition[0])
-    precision = 2.0
     val_OK = 0
     
-    while ( abs( T_Low - tableau[0] ) >= precision ):
+    while ( abs( T_Low - tableau[0] ) >= temp_precision ):
         
         tableau[0] = utils.equilibrium(gas, equivalence_ratio, fuel) # au lieu d'appeler Chemkin, on utilise directement le calcul de l'équilibre de Cantera (via la fonction equilibrate)
         
@@ -78,7 +80,7 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
         
         equivalence_ratio = ( equivalence_ratio_up + equivalence_ratio_down ) / 2.0
         
-        if ( abs( equivalence_ratio_up - equivalence_ratio_down ) <= 0.05 ):
+        if ( abs( equivalence_ratio_up - equivalence_ratio_down ) <= phi_precision ):
             break
         
     if ( val_OK != 1 ):
@@ -92,10 +94,9 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
     equivalence_ratio = ( equivalence_ratio_up + equivalence_ratio_down ) / 2.0
     
     tableau[0] = 100.0
-    precision = 2.0
     val_OK = 0
     
-    while ( abs( T_High - tableau[0] ) >= precision ):
+    while ( abs( T_High - tableau[0] ) >= temp_precision ):
         
         tableau[0] = utils.equilibrium(gas, equivalence_ratio, fuel) # au lieu d'appeler Chemkin, on utilise directement le calcul de l'équilibre de Cantera (via la fonction equilibrate)
         
@@ -110,7 +111,7 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
         
         equivalence_ratio = ( equivalence_ratio_up + equivalence_ratio_down ) / 2.0
         
-        if ( abs( equivalence_ratio_up - equivalence_ratio_down ) <= 0.05 ):
+        if ( abs( equivalence_ratio_up - equivalence_ratio_down ) <= phi_precision ):
             break
         
     if ( val_OK != 1 ):
