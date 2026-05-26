@@ -3,7 +3,7 @@ from cantera import Solution
 import utils
 
 # On calcule les LIE/LSE du mélange (subroutine LIE_LSE_V2.f90)
-def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
+def lie_lse(gas: Solution, T_Low: float, T_High: float, temp_precision=0.05, phi_precision=0.005) -> dict:
     resultat = dict() # les résultats seront stockés dans un dictionnaire avec les clés 'LIE' et 'LSE'
     
     # Presence d'inerte ds le fuel de départ
@@ -51,11 +51,8 @@ def lie_lse(gas: Solution, T_Low: float, T_High: float) -> dict:
         ratio_CO2 = utils.composition[4] / fuel_quantity
     if utils.composition[2] >= 1.0e-8:
         ratio_H2O = utils.composition[2] / fuel_quantity
-    
-    # on définit les précisions pour la recherche de la LIE et de la LSE (pour la température et le ratio d'équivalence)
-    temp_precision = 0.05 # par défaut : 2.0
-    phi_precision = 0.005 # par défaut : 0.05
-        
+            
+            
     # Phase 1 - Recherche de la LIE
     equivalence_ratio_up    = 1.0
     equivalence_ratio_down  = 0.01

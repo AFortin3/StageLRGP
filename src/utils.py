@@ -2,6 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
 import cantera as ct
+import streamlit as st
 from pathlib import Path
 
 from core.Critere_T import critere_T
@@ -99,7 +100,7 @@ def equilibrium(gas: ct.Solution, equivalence_ratio: float, fuel: dict) -> float
 
 
 # Cette fonction calcule les limites d'explosivité (LIE et LSE) pour un mélange de gaz en fonction de différentes températures et pressions.            
-def calcul_plage(t_min: float, t_max: float, dt: float, p_min: float, p_max: float, dp: float) -> pd.DataFrame:
+def calcul_plage(t_min: float, t_max: float, dt: float, p_min: float, p_max: float, dp: float, precision_temp: float, precision_phi: float) -> pd.DataFrame:
     global pression, temperature
     
     results =[]
@@ -116,16 +117,25 @@ def calcul_plage(t_min: float, t_max: float, dt: float, p_min: float, p_max: flo
             
             # Calcul
             temperatures = critere_T()
-            res = lie_lse(gas, temperatures[0], temperatures[1])
+            res = lie_lse(gas, temperatures[0], temperatures[1], precision_temp, precision_phi)
+            
+            # Si la lie/lse ne peut pas être calculée pour ce point, on stocke NaN (qui sera traité comme il faut plus tard)
+            val_lie = res["LIE"][4] if res.get("LIE") is not None else np.nan
+            val_lse = res["LSE"][4] if res.get("LSE") is not None else np.nan   
             
             # Stockage
             results.append({
                 "T (°C)": t_val,
                 "P (bar)": p_val,
-                "LIE": res['LIE'][4],
-                "LSE": res['LSE'][4]
+                "LIE": val_lie,
+                "LSE": val_lse
             })
             
     return pd.DataFrame(results)
+
+
+
+def reset_results():
+    st.session_state.resultats_plage = None
 
 
