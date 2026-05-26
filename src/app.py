@@ -1,10 +1,13 @@
 import streamlit as st
 
-import utils
+import core.calculateur as calc
 from components.sidebar import render_sidebar
 from components.dashboard import show_gas_properties, show_limites_results, render_analysis_expander
 
 def main():
+    if "calculateur" not in st.session_state:
+        st.session_state.calculateur = calc.Calculateur()
+    
     st.set_page_config(layout="wide")
         
     st.title("Mélange de gaz")
@@ -17,7 +20,7 @@ def main():
     show_gas_properties(data)
 
     try:
-        limites = utils.main_streamlit(data)
+        limites = st.session_state.calculateur.start(data)
     except Exception as e:
         st.error(f"Erreur: {e}")
         st.stop()

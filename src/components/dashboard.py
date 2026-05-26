@@ -1,14 +1,10 @@
-from math import isnan
-from narwhals import col
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-import utils
-from utils import reset_results
-
+# Affichage des propriétés physiques du mélange (pression, température, composition du carburant et gaz inertes) 
 def show_gas_properties(data: dict):
     st.write("### Résumé des paramètres choisis :")
 
@@ -46,7 +42,7 @@ def show_gas_properties(data: dict):
         )
     
     
-    
+# Affichage des résultats de la simulation (LIE et LSE) avec des messages d'avertissement si les limites n'ont pas pu être calculées pour les conditions données, et explications possibles
 def show_limites_results(limites: dict):
     st.divider()
     st.subheader("Résultats de la Simulation")
@@ -102,9 +98,19 @@ def show_limites_results(limites: dict):
     
     
         
-
+# Création d'un expander pour étendre les calculs à une plage de température / pression
 def render_analysis_expander():
-    # Création d'un expander pour étendre les calculs à une plage de température / pression
+    # Injection de CSS pour personnaliser les couleurs des boutons (Lancer en vert)
+    st.markdown("""
+        <style>
+        /* Couleur du bouton Lancer (Vert) */
+        div.stButton > button:first-child {
+            background-color: #28a745;
+            color: white;
+            border: none;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     st.divider()
     st.subheader("Analyse détaillée (plage de T et P)")
 
@@ -113,7 +119,7 @@ def render_analysis_expander():
         if "resultats_plage" not in st.session_state:
             st.session_state.resultats_plage = None
         
-        col_title, col_precision_temp, col_precision_phi = st.columns([2, 1, 1]) # Colonne pour le titre, et une colonne plus petite pour les précisions
+        col_title, col_precision_temp, col_precision_phi = st.columns([3, 1, 1]) # Colonne pour le titre, et une colonne plus petite pour les précisions
         with col_title:
             st.subheader("Définissez les bornes pour effectuer une étude paramétrique.")
             
@@ -124,13 +130,13 @@ def render_analysis_expander():
         # Inputs pour définir la plage de température et de pression à analyser
         col_t1, col_t2, col_t3 = st.columns(3)
         t_min = col_t1.number_input("T min (°C)", value=20.0, step=5.0, on_change=reset_results, key="t_min_input")
-        t_max = col_t2.number_input("T max (°C)", value=100.0, min_value=t_min, step=5.0, on_change=reset_results, key="t_max_input")
-        dt = col_t3.number_input("Pas T (°C)", value=10.0, min_value=0.001, step=5.0, on_change=reset_results, key="dt_input")
+        t_max = col_t2.number_input("T max (°C)", value=100.0, step=5.0, on_change=reset_results, key="t_max_input")
+        dt = col_t3.number_input("Pas T (°C)", value=10.0, min_value=0.001, step=5.0, key="dt_input")
 
         col_p1, col_p2, col_p3 = st.columns(3)
         p_min = col_p1.number_input("P min (bar)", value=1.0, step=1.0, on_change=reset_results, key="p_min_input")
-        p_max = col_p2.number_input("P max (bar)", value=10.0, min_value=p_min, step=1.0, on_change=reset_results, key="p_max_input")
-        dp = col_p3.number_input("Pas P (bar)", value=1.0, min_value=0.001, step=1.0, on_change=reset_results, key="dp_input")
+        p_max = col_p2.number_input("P max (bar)", value=10.0, step=1.0, on_change=reset_results, key="p_max_input")
+        dp = col_p3.number_input("Pas P (bar)", value=1.0, min_value=0.001, step=1.0, key="dp_input")
         
         # Calcul du nombre de points pour prévenir l'utilisateur
         nb_t = int((t_max - t_min) / dt) + 1
@@ -151,7 +157,7 @@ def render_analysis_expander():
             
                 with st.spinner("Calcul en cours..."):
                     # On stocke le résultat dans le session_state
-                    st.session_state.resultats_plage = utils.calcul_plage(t_min, t_max, dt, p_min, p_max, dp, precision_temp, precision_phi)
+                    st.session_state.resultats_plage = st.session_state.calculateur.calcul_plage(t_min, t_max, dt, p_min, p_max, dp, precision_temp, precision_phi)
                 
                 st.success("Calculs terminés !")
                 
@@ -160,6 +166,9 @@ def render_analysis_expander():
         if st.session_state.resultats_plage is not None:
             resultats_plage = st.session_state.resultats_plage
             
+            if resultats_plage.empty:
+                st.warning("Aucun résultat à afficher pour la plage sélectionnée. Veuillez ajuster les paramètres.")
+                st.stop()
             
             # On vérifie s'il y a des points où la LIE ou la LSE n'ont pas pu être calculées (NaN)
             # Listes pour stocker les points qui ont posé problème
@@ -309,4 +318,9 @@ def render_analysis_expander():
             # Affichage du tableau complet des résultats (avec possibilité de filtrer pour éviter d'avoir 10000 points d'un coup)
             with table:
                 st.dataframe(resultats_plage, width='stretch')
+       
                 
+# Fonction pour réinitialiser les résultats de la plage d'analyse
+def reset_results():
+    st.session_state.resultats_plage = None
+ 
