@@ -22,7 +22,7 @@ def show_gas_properties(data: dict):
         st.dataframe(
             df_inertes, 
             hide_index=True, 
-            use_container_width=True, # Prend toute la largeur de l'expander
+            width="stretch", # Prend toute la largeur de l'expander
             height="stretch",
             column_config={
                 col: st.column_config.NumberColumn(col, format="%.2f") 
@@ -35,7 +35,7 @@ def show_gas_properties(data: dict):
         st.dataframe(
             df_fuel, 
             hide_index=True, 
-            use_container_width=True, # Prend toute la largeur de l'expander
+            width="stretch", # Prend toute la largeur de l'expander
             column_config={
                 "Valeur": st.column_config.NumberColumn("Valeur (%)", format="%.2f")
             }
@@ -157,7 +157,7 @@ def render_analysis_expander():
             
                 with st.spinner("Calcul en cours..."):
                     # On stocke le résultat dans le session_state
-                    st.session_state.resultats_plage = st.session_state.calculateur.calcul_plage(t_min, t_max, dt, p_min, p_max, dp, precision_temp, precision_phi)
+                    st.session_state.resultats_plage = st.session_state.gsim.calcul_plage(t_min, t_max, dt, p_min, p_max, dp, precision_temp, precision_phi)
                 
                 st.success("Calculs terminés !")
                 

@@ -1,7 +1,5 @@
-from cantera import Solution
-
 # On calcule les LIE/LSE du mélange (subroutine LIE_LSE_V2.f90)
-def lie_lse(calculateur, T_Low: float, T_High: float, temp_precision=0.05, phi_precision=0.005) -> dict:
+def lie_lse(gsim, T_Low: float, T_High: float, temp_precision=0.05, phi_precision=0.005) -> dict:
     resultat = dict() # les résultats seront stockés dans un dictionnaire avec les clés 'LIE' et 'LSE'
     
     # Presence d'inerte ds le fuel de départ
@@ -29,10 +27,10 @@ def lie_lse(calculateur, T_Low: float, T_High: float, temp_precision=0.05, phi_p
     # on parcoure les espèces pour trouver les combustibles dominants
     fuel = dict() # initialisation d'un dictionnaire pour stocker le nom du combustible dominant et sa fraction molaire
     
-    for i, sp in enumerate(calculateur.species):
-        if calculateur.composition[i+1] >= 1.0e-6: # on considère qu'une espèce est présente en quantité significative si sa fraction molaire est supérieure ou égale à 1.0e-6
+    for i, sp in enumerate(gsim.species):
+        if gsim.composition[i+1] >= 1.0e-6: # on considère qu'une espèce est présente en quantité significative si sa fraction molaire est supérieure ou égale à 1.0e-6
             if sp not in ['O2', 'N2', 'CO2', 'H2O']: # on ignore les espèces inertes (O2, N2, CO2, H2O)
-                fuel[sp] = calculateur.composition[i+1]                
+                fuel[sp] = gsim.composition[i+1]                
 
     if len(fuel) == 0:
         raise ValueError("Aucun combustible dominant détecté.")
@@ -41,14 +39,14 @@ def lie_lse(calculateur, T_Low: float, T_High: float, temp_precision=0.05, phi_p
     fuel_quantity = sum(fuel.values()) # on calcule la quantité totale de combustible en sommant les fractions molaires des espèces dominantes
     
     # on calcule les ratios d'inertes par rapport au combustible dominant (repere) pour les espèces inertes présentes en quantité significative
-    if calculateur.composition[13] >= 1.0e-8:
-        ratio_N2 = calculateur.composition[13] / fuel_quantity
-    if calculateur.composition[12] >= 1.0e-8:
-        ratio_O2 = calculateur.composition[12] / fuel_quantity
-    if calculateur.composition[4] >= 1.0e-8:
-        ratio_CO2 = calculateur.composition[4] / fuel_quantity
-    if calculateur.composition[2] >= 1.0e-8:
-        ratio_H2O = calculateur.composition[2] / fuel_quantity
+    if gsim.composition[13] >= 1.0e-8:
+        ratio_N2 = gsim.composition[13] / fuel_quantity
+    if gsim.composition[12] >= 1.0e-8:
+        ratio_O2 = gsim.composition[12] / fuel_quantity
+    if gsim.composition[4] >= 1.0e-8:
+        ratio_CO2 = gsim.composition[4] / fuel_quantity
+    if gsim.composition[2] >= 1.0e-8:
+        ratio_H2O = gsim.composition[2] / fuel_quantity
             
             
     # Phase 1 - Recherche de la LIE
@@ -56,13 +54,13 @@ def lie_lse(calculateur, T_Low: float, T_High: float, temp_precision=0.05, phi_p
     equivalence_ratio_down  = 0.01
     equivalence_ratio = ( equivalence_ratio_up + equivalence_ratio_down ) / 2.0
      
-    tableau = calculateur.composition.copy()
+    tableau = gsim.composition.copy()
     tableau[0] = 2000.0 # on place la température dans l'index 0 du tableau (qui contenait la valeur None de composition[0])
     val_OK = 0
     
     while ( abs( T_Low - tableau[0] ) >= temp_precision ):
         
-        tableau[0] = calculateur.equilibrium(equivalence_ratio, fuel) # au lieu d'appeler Chemkin, on utilise directement le calcul de l'équilibre de Cantera (via la fonction equilibrate)
+        tableau[0] = gsim.equilibrium(equivalence_ratio, fuel) # au lieu d'appeler Chemkin, on utilise directement le calcul de l'équilibre de Cantera (via la fonction equilibrate)
         
         if ( ( T_Low - tableau[0] ) <= 0.0 ):
             equivalence_ratio_up = equivalence_ratio
@@ -80,7 +78,7 @@ def lie_lse(calculateur, T_Low: float, T_High: float, temp_precision=0.05, phi_p
         
     if ( val_OK != 1 ):
         # on appelle la fonction de calcul de la limite d'explosivité pour calculer la LIE à partir du ratio d'équivalence trouvé et des propriétés du gaz
-        resultat["LIE"] = calcul_limite(calculateur, equivalence_ratio, fuel, tableau, T_Low, ratio_N2, ratio_O2, ratio_CO2, ratio_H2O, fuel_quantity) 
+        resultat["LIE"] = calcul_limite(gsim, equivalence_ratio, fuel, tableau, T_Low, ratio_N2, ratio_O2, ratio_CO2, ratio_H2O, fuel_quantity) 
         
     
     # Phase 2 - Recherche de la LSE
@@ -93,7 +91,7 @@ def lie_lse(calculateur, T_Low: float, T_High: float, temp_precision=0.05, phi_p
     
     while ( abs( T_High - tableau[0] ) >= temp_precision ):
         
-        tableau[0] = calculateur.equilibrium(equivalence_ratio, fuel) # au lieu d'appeler Chemkin, on utilise directement le calcul de l'équilibre de Cantera (via la fonction equilibrate)
+        tableau[0] = gsim.equilibrium(equivalence_ratio, fuel) # au lieu d'appeler Chemkin, on utilise directement le calcul de l'équilibre de Cantera (via la fonction equilibrate)
         
         if ( ( T_High - tableau[0] ) >= 0.0 ):
             equivalence_ratio_up = equivalence_ratio
@@ -111,7 +109,7 @@ def lie_lse(calculateur, T_Low: float, T_High: float, temp_precision=0.05, phi_p
         
     if ( val_OK != 1 ):
         # on appelle la fonction de calcul de la limite d'explosivité pour calculer la LSE à partir du ratio d'équivalence trouvé et des propriétés du gaz
-        resultat["LSE"] = calcul_limite(calculateur, equivalence_ratio, fuel, tableau, T_High, ratio_N2, ratio_O2, ratio_CO2, ratio_H2O, fuel_quantity) 
+        resultat["LSE"] = calcul_limite(gsim, equivalence_ratio, fuel, tableau, T_High, ratio_N2, ratio_O2, ratio_CO2, ratio_H2O, fuel_quantity) 
     
         
     # on retourne le dictionnaire contenant les résultats des calculs

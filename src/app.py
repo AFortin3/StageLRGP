@@ -1,13 +1,13 @@
 import streamlit as st
 
-import core.calculateur as calc
+import core.GasSimulator as gsim
 from components.sidebar import render_sidebar
 from components.dashboard import show_gas_properties, show_limites_results, render_analysis_expander
 
 def main():
-    if "calculateur" not in st.session_state:
-        st.session_state.calculateur = calc.Calculateur()
-    
+    if "gsim" not in st.session_state:
+        st.session_state.gsim = gsim.GasSimulator() 
+            
     st.set_page_config(layout="wide")
         
     st.title("Mélange de gaz")
@@ -20,7 +20,7 @@ def main():
     show_gas_properties(data)
 
     try:
-        limites = st.session_state.calculateur.start(data)
+        limites = st.session_state.gsim.start(data)
     except Exception as e:
         st.error(f"Erreur: {e}")
         st.stop()

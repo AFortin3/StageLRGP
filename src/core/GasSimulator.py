@@ -2,13 +2,13 @@ import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
 import cantera as ct
-import streamlit as st
 from pathlib import Path
 
 from core.Critere_T import critere_T
 from core.LIE_LSE_V2 import lie_lse
 
-class Calculateur:
+# classe principale pour la simulation du mélange de gaz et le calcul des limites d'explosivité (abbrégé en "gsim" dans le code de l'application Streamlit)
+class GasSimulator: 
     def __init__(self, yaml_filename: str = "output_convert.yaml"):
         """
         Initialise une nouvelle instance d'analyse avec son propre objet Cantera 
@@ -25,8 +25,9 @@ class Calculateur:
         ]
 
         # on ajoute le dossier actuel à la liste des répertoires de données de Cantera 
-        src = Path(__file__).resolve().parent # Récupère le chemin du dossier actuel
-        dossier = src / 'data' # Construit le chemin vers le dossier "data" à partir du dossier actuel
+        core = Path(__file__).resolve().parent # Récupère le chemin du dossier actuel
+        src = core.parent # Parent du dossier actuel (src)
+        dossier = src / 'data' # Construit le chemin vers le dossier "data" à partir du parent du dossier actuel (src)
         ct.add_data_directory(str(dossier)) # Ajoute le dossier à la liste des répertoires de données de Cantera
 
         # on essaie de charger les données de la réaction de combustion à partir du fichier "output_convert.yaml" et de créer un objet "gas" par défaut à partir de ces données.        
@@ -37,7 +38,7 @@ class Calculateur:
         
         
         
-    # Cette fonction est le point d'entrée principal de l'application Streamlit. 
+    # Cette fonction est le point d'entrée principal de l'application. 
     # Elle prend en entrée un dictionnaire "data" contenant les paramètres de la simulation (température, pression, composition du carburant, gaz inertes) fournis par l'utilisateur
     # Elle renvoie les premières LIE/LSE déterminées à partir des données fournies.
     def start(self, data: dict): 

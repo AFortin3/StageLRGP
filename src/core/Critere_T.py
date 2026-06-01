@@ -1,7 +1,7 @@
 import numpy as np
 
 # On récupère les seuils de température critiques (T_low et T_high) pour le mélange (subroutine Critere_T.f90)
-def critere_T(calculateur) -> tuple[float, float]:
+def critere_T(gsim) -> tuple[float, float]:
     critere_P = np.zeros((19, 3), dtype=float) # initialisation du tableau des critères de température (avec ligne et colonne 0 nulles pour éviter les erreurs d'indexation)
 
     # Critere Low_T
@@ -106,29 +106,29 @@ def critere_T(calculateur) -> tuple[float, float]:
     # Effet de la pression pour C1 - C2 - C3 - C4 (+ C3H6Y et nC4H8Y) 
     plage_P = np.array([0., 1., 5., 10., 20., 40., 50., 100.]) # en bar
            
-    if ( calculateur.pression <= plage_P[2] ):
+    if ( gsim.pression <= plage_P[2] ):
         indice = 1
-    elif ( calculateur.pression > plage_P[2] and calculateur.pression <= plage_P[3] ):
+    elif ( gsim.pression > plage_P[2] and gsim.pression <= plage_P[3] ):
         indice = 2
-    elif ( calculateur.pression > plage_P[3] and calculateur.pression <= plage_P[4] ):
+    elif ( gsim.pression > plage_P[3] and gsim.pression <= plage_P[4] ):
         indice = 3
-    elif ( calculateur.pression > plage_P[4] and calculateur.pression <= plage_P[5] ):
+    elif ( gsim.pression > plage_P[4] and gsim.pression <= plage_P[5] ):
         indice = 4
-    elif ( calculateur.pression > plage_P[5] and calculateur.pression <= plage_P[6] ):
+    elif ( gsim.pression > plage_P[5] and gsim.pression <= plage_P[6] ):
         indice = 5
-    elif ( calculateur.pression > plage_P[6] and calculateur.pression <= plage_P[7] ):
+    elif ( gsim.pression > plage_P[6] and gsim.pression <= plage_P[7] ):
         indice = 6
     else:
     # pour les pressions > 100 bar, on considère que les critères de température sont ceux à 50 bar (température = 1000 de toute façon)
     # sinon cela causerait un problème d'indice (array out of bounds) pour l'indice = 7 (il cherche l'indice 7+1 = 8 qui n'existe pas dans le tableau)
         indice = 6 # 6 au lieu de 7
         
-    critere_P[7,2] = correction_P[1,indice] + ( correction_P[1,indice+1] - correction_P[1,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( calculateur.pression - plage_P[indice] ) # CH4
-    critere_P[8,2] = correction_P[2,indice] + ( correction_P[2,indice+1] - correction_P[2,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( calculateur.pression - plage_P[indice] ) # C2H6
-    critere_P[9,2] = correction_P[3,indice] + ( correction_P[3,indice+1] - correction_P[3,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( calculateur.pression - plage_P[indice] ) # C3H8
-    critere_P[10,2]= correction_P[4,indice] + ( correction_P[4,indice+1] - correction_P[4,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( calculateur.pression - plage_P[indice] ) # C4H10
-    critere_P[14,2] = correction_P[5,indice] + ( correction_P[5,indice+1] - correction_P[5,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( calculateur.pression - plage_P[indice] ) # C3H6Y
-    critere_P[15,2] = correction_P[6,indice] + ( correction_P[6,indice+1] - correction_P[6,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( calculateur.pression - plage_P[indice] ) # nC4H8Y
+    critere_P[7,2] = correction_P[1,indice] + ( correction_P[1,indice+1] - correction_P[1,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( gsim.pression - plage_P[indice] ) # CH4
+    critere_P[8,2] = correction_P[2,indice] + ( correction_P[2,indice+1] - correction_P[2,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( gsim.pression - plage_P[indice] ) # C2H6
+    critere_P[9,2] = correction_P[3,indice] + ( correction_P[3,indice+1] - correction_P[3,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( gsim.pression - plage_P[indice] ) # C3H8
+    critere_P[10,2]= correction_P[4,indice] + ( correction_P[4,indice+1] - correction_P[4,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( gsim.pression - plage_P[indice] ) # C4H10
+    critere_P[14,2] = correction_P[5,indice] + ( correction_P[5,indice+1] - correction_P[5,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( gsim.pression - plage_P[indice] ) # C3H6Y
+    critere_P[15,2] = correction_P[6,indice] + ( correction_P[6,indice+1] - correction_P[6,indice] ) / ( plage_P[indice+1] - plage_P[indice] ) * ( gsim.pression - plage_P[indice] ) # nC4H8Y
     
     
     # H2
@@ -143,32 +143,32 @@ def critere_T(calculateur) -> tuple[float, float]:
 	# 1 <= pression <= 10.
 	# cas H2 seul : y = -44.833x3 + 421x2 - 1323.2x + 2071
 
-    if ( np.sum(calculateur.composition[2:13]) <= 1.0e-5 ): 
+    if ( np.sum(gsim.composition[2:13]) <= 1.0e-5 ): 
         # cas de H2 seul
-        if ( calculateur.temperature <= 25. + 273.15 ):
-            critere_P[1,2] = -44.833 * calculateur.pression**3 + 421 * calculateur.pression**2 - 1323.2 * calculateur.pression**1 + 2071 # 30°
+        if ( gsim.temperature <= 25. + 273.15 ):
+            critere_P[1,2] = -44.833 * gsim.pression**3 + 421 * gsim.pression**2 - 1323.2 * gsim.pression**1 + 2071 # 30°
         else:
-            critere_P[1,2] = 25. * calculateur.pression**2 - 205. * calculateur.pression + 1025  # 90°C  + 60°C  + 40°C
+            critere_P[1,2] = 25. * gsim.pression**2 - 205. * gsim.pression + 1025  # 90°C  + 60°C  + 40°C
 
-        if ( calculateur.pression < 1.2 and calculateur.temperature <= 42. + 273.15):  critere_P[1,2] = ( critere_P[1,2] + 1124. ) / 2.
+        if ( gsim.pression < 1.2 and gsim.temperature <= 42. + 273.15):  critere_P[1,2] = ( critere_P[1,2] + 1124. ) / 2.
         
-        if ( calculateur.pression > 4. ): critere_P[1,2] = 600.0
+        if ( gsim.pression > 4. ): critere_P[1,2] = 600.0
     else:   
 		# cas H2 en mélange
 		# 1 bar : 1124
 		# 3 bar : 850
 		# 6 bar : 950
 		# 10 bar : 1000
-        if ( calculateur.pression <= 6 ):
-            critere_P[1,2] = 34.067 * calculateur.pression**2 - 273.27 * calculateur.pression + 1363.2
-        elif ( calculateur.pression > 6 and calculateur.pression <= 10 ):
-            critere_P[1,2] = 12.5 * calculateur.pression + 875 
+        if ( gsim.pression <= 6 ):
+            critere_P[1,2] = 34.067 * gsim.pression**2 - 273.27 * gsim.pression + 1363.2
+        elif ( gsim.pression > 6 and gsim.pression <= 10 ):
+            critere_P[1,2] = 12.5 * gsim.pression + 875 
         else:
             critere_P[1,2] = 1000.
             
     
     # Somme totale sans les inertes
-    composition_1 = calculateur.composition.copy() # on duplique la composition pour ne pas modifier les données originales
+    composition_1 = gsim.composition.copy() # on duplique la composition pour ne pas modifier les données originales
     composition_1[0] = 0. # pour éviter les erreurs de calcul sur un objet None
     
     Sum1 = np.sum(composition_1) - composition_1[2] - composition_1[4] - composition_1[12] - composition_1[13]

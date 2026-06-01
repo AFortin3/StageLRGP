@@ -30,7 +30,7 @@ def render_sidebar():
         
         # Création d'un dictionnaire pour stocker les valeurs
         fuel_values = {}
-        species = st.session_state.calculateur.species # la liste des espèces utilisées 
+        species = st.session_state.gsim.species # la liste des espèces utilisées 
         for fuel in species:
             default_val = 100 if fuel == "C3H8" else 0
             fuel_values[fuel] = st.number_input(f"FUEL {fuel}", value=float(default_val), min_value=0.0, max_value=100.0, step=10.0, on_change=reset_results)
