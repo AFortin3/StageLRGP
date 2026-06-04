@@ -12,7 +12,7 @@ def main():
     st.set_page_config(layout="wide") # pour prendre toute la largeur de l'écran
 
     # On aligne le titre et le bouton pour afficher le guide utilisateur avec des colonnes
-    title, guide = st.columns([5, 1]) 
+    title, guide = st.columns([6, 1]) 
 
     # On définit la fenêtre pop-up (guide utilisateur)
     @st.dialog("📖 Guide d'Utilisation", width="large")
