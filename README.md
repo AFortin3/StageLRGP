@@ -2,7 +2,7 @@
 
 Cette branche contient la première version locale (en ligne de commande) du projet de portage de ChemkinPro vers Python/Cantera. Elle permet de calculer la Limite Inférieure d'Explosivité (LIE) et la Limite Supérieure d'Explosivité (LSE) de mélanges gazeux.
 
-⚠️ **Note :** Il s'agit d'une version de développement initiale. Elle ne contient pas d'interface graphique et prend en charge seulement les 13 premières espèces.
+⚠️ **Note :** Il s'agit d'une version de développement initiale. Elle ne contient pas d'interface graphique et prend en charge seulement les 13 premières espèces de gaz.
 
 ---
 
