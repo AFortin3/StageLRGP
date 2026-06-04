@@ -18,7 +18,8 @@ Le projet est structuré selon les standards des applications web Python :
 ├── src/
 │   ├── components/             # Composants de l'interface graphique (UI)
 │   │   ├── dashboard.py        # Affichage principal des résultats et graphiques
-│   │   └── sidebar.py          # Panneau latéral de configuration des paramètres
+│   │   ├── sidebar.py          # Panneau latéral de configuration des paramètres
+│   │   └── guide.py            # Texte en markdown du guide utilisateur 
 │   ├── core/                   # Moteur logique et calculs thermochimiques
 │   │   ├── Critere_T.py        # Algorithme des températures critiques
 │   │   ├── GasSimulator.py     # Classe principale de simulation Cantera
