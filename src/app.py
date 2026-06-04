@@ -10,8 +10,8 @@ def main():
             
     st.set_page_config(layout="wide")
         
-    st.title("Mélange de gaz")
-
+    st.title("Simulateur des Limites d'Inflammabilité")
+    
     data = render_sidebar()
     if data == 0:  # Cas où aucun carburant n'est sélectionné
         st.warning("⚠️ la somme des carburants est nulle. Veuillez sélectionner au moins un carburant.")
